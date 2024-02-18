@@ -1,0 +1,5 @@
+services:
+  mk-dl-bot:
+    build: .
+    env_file:
+      - .env
