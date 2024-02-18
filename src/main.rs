@@ -1,5 +1,6 @@
 use anyhow;
 use dotenv::dotenv;
+use teloxide::dispatching::dialogue::GetChatId;
 use std::env;
 use std::fmt;
 use std::str;
@@ -11,6 +12,7 @@ use teloxide::dispatching::UpdateHandler;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 
 mod dl;
+use dl::download::download;
 
 type State = ();
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
@@ -59,7 +61,9 @@ fn schema() -> UpdateHandler<HandlerErr> {
     use dptree::case;
 
     let command_handler =
-        teloxide::filter_command::<Command, _>().branch(case![Command::Test].endpoint(test));
+        teloxide::filter_command::<Command, _>()
+            .branch(case![Command::Test].endpoint(test));
+            //.branch(case![Command::Download(download)].endpoint(download));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -73,6 +77,9 @@ fn schema() -> UpdateHandler<HandlerErr> {
 #[command(rename_rule = "lowercase")]
 enum Command {
     Test,
+
+    #[command(alias = "dl")]
+    Download(String),
 }
 
 async fn test(bot: Bot, msg: Message) -> HandlerResult {
@@ -88,16 +95,6 @@ async fn handle_message(_bot: Bot, _dialogue: MyDialogue, msg: Message) -> Handl
         msg.kind,
         msg.text().unwrap_or("<empty>")
     );
-
-    Ok(())
-}
-
-async fn _answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
-    match cmd {
-        Command::Test => {
-            bot.send_message(msg.chat.id, "test response").await?;
-        }
-    }
 
     Ok(())
 }
