@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 use tokio::task::{spawn_blocking, JoinError};
 
+// TODO: Switch to Command::new for true multithreading and async
 pub async fn download_url(url: String) -> Result<bool, JoinError> {
     spawn_blocking(move || {
         let res: PyResult<()> = Python::with_gil(|py| {
