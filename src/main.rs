@@ -1,6 +1,5 @@
 use anyhow;
 use dotenv::dotenv;
-use teloxide::dispatching::dialogue::GetChatId;
 use std::env;
 use std::fmt;
 use std::str;
@@ -12,7 +11,7 @@ use teloxide::dispatching::UpdateHandler;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 
 mod dl;
-use dl::download::download;
+use dl::download::download_url;
 
 type State = ();
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
@@ -62,8 +61,8 @@ fn schema() -> UpdateHandler<HandlerErr> {
 
     let command_handler =
         teloxide::filter_command::<Command, _>()
-            .branch(case![Command::Test].endpoint(test));
-            //.branch(case![Command::Download(download)].endpoint(download));
+            .branch(case![Command::Test].endpoint(test))
+            .branch(case![Command::Download(url)].endpoint(download));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -84,6 +83,15 @@ enum Command {
 
 async fn test(bot: Bot, msg: Message) -> HandlerResult {
     bot.send_message(msg.chat.id, "test response").await?;
+
+    Ok(())
+}
+
+async fn download(bot: Bot, msg: Message, url: String) -> HandlerResult {
+    match download_url(url).await {
+        Ok(_) => bot.send_message(msg.chat.id, "downloaded"),
+        Err(_) => bot.send_message(msg.chat.id, "failed to download")
+    }.await?;
 
     Ok(())
 }
