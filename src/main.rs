@@ -79,7 +79,7 @@ async fn test(bot: Bot, msg: Message) -> HandlerResult {
     Ok(())
 }
 
-async fn handle_message(bot: Bot, dialogue: MyDialogue, msg: Message) -> HandlerResult {
+async fn handle_message(_bot: Bot, _dialogue: MyDialogue, msg: Message) -> HandlerResult {
     println!(
         "msg {} kind {:?} text {}",
         msg.id,
@@ -90,7 +90,7 @@ async fn handle_message(bot: Bot, dialogue: MyDialogue, msg: Message) -> Handler
     Ok(())
 }
 
-async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
+async fn _answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
     match cmd {
         Command::Test => {
             bot.send_message(msg.chat.id, "test response").await?;
