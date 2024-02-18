@@ -10,6 +10,9 @@ use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::UpdateHandler;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 
+mod dl;
+use dl::download::download_url;
+
 type State = ();
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
 
@@ -57,7 +60,9 @@ fn schema() -> UpdateHandler<HandlerErr> {
     use dptree::case;
 
     let command_handler =
-        teloxide::filter_command::<Command, _>().branch(case![Command::Test].endpoint(test));
+        teloxide::filter_command::<Command, _>()
+            .branch(case![Command::Test].endpoint(test))
+            .branch(case![Command::Download(url)].endpoint(download));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -71,10 +76,22 @@ fn schema() -> UpdateHandler<HandlerErr> {
 #[command(rename_rule = "lowercase")]
 enum Command {
     Test,
+
+    #[command(alias = "dl")]
+    Download(String),
 }
 
 async fn test(bot: Bot, msg: Message) -> HandlerResult {
     bot.send_message(msg.chat.id, "test response").await?;
+
+    Ok(())
+}
+
+async fn download(bot: Bot, msg: Message, url: String) -> HandlerResult {
+    match download_url(url).await {
+        Ok(_) => bot.send_message(msg.chat.id, "downloaded"),
+        Err(_) => bot.send_message(msg.chat.id, "failed to download")
+    }.await?;
 
     Ok(())
 }
@@ -86,16 +103,6 @@ async fn handle_message(_bot: Bot, _dialogue: MyDialogue, msg: Message) -> Handl
         msg.kind,
         msg.text().unwrap_or("<empty>")
     );
-
-    Ok(())
-}
-
-async fn _answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
-    match cmd {
-        Command::Test => {
-            bot.send_message(msg.chat.id, "test response").await?;
-        }
-    }
 
     Ok(())
 }
