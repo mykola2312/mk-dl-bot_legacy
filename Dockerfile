@@ -1,3 +1,4 @@
+# Rust build
 FROM rust:1-alpine3.19
 
 ENV RUSTFLAGS="-C target-feature=-crt-static"
@@ -9,7 +10,7 @@ COPY ./ /app
 RUN cargo build --release
 RUN strip target/release/mk-dl-bot
 
-
+# Rust
 FROM alpine:3.19
 RUN apk add --no-cache libgcc
 
