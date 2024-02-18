@@ -10,6 +10,8 @@ use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::UpdateHandler;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 
+mod dl;
+
 type State = ();
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
 
