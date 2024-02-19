@@ -28,6 +28,34 @@ impl YtDlpFormat {
             self.vcodec = None
         }
     }
+
+    fn str_option<T>(opt: &Option<T>) -> String
+    where
+        T: ToString,
+    {
+        if let Some(value) = opt {
+            value.to_string()
+        } else {
+            "None".to_string()
+        }
+    }
+}
+
+impl fmt::Display for YtDlpFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "id\t{}\text\t{}\tw\t{}\th\t{}\tvcodec\t{}\tvbr\t{}\tacodec\t{}\tabr\t{}",
+            self.format_id,
+            self.ext,
+            Self::str_option(&self.width),
+            Self::str_option(&self.height),
+            Self::str_option(&self.vcodec),
+            Self::str_option(&self.vbr),
+            Self::str_option(&self.acodec),
+            Self::str_option(&self.abr)
+        )
+    }
 }
 
 #[derive(Deserialize, Debug)]

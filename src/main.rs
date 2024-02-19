@@ -39,7 +39,9 @@ async fn main() -> anyhow::Result<()> {
     let info = YtDlp::load_info(env::var("TEST_URL")?.as_str())
         .await
         .expect("load_info");
-    dbg!(info);
+    for format in info.formats {
+        println!("{}", format);
+    }
 
     Ok(())
     //bot_main().await
