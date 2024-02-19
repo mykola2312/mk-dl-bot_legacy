@@ -5,7 +5,7 @@ ENV RUSTFLAGS="-C target-feature=-crt-static"
 RUN apk add --no-cache musl-dev openssl-dev
 
 WORKDIR /app
-COPY ./ /app
+COPY Cargo.toml Cargo.lock src/ /app/
 
 RUN cargo build --release
 RUN strip target/release/mk-dl-bot
