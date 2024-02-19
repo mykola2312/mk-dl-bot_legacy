@@ -35,6 +35,10 @@ where
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
+    bot_main().await
+}
+
+async fn bot_main() -> anyhow::Result<()> {
     let bot = Bot::new(env::var("BOT_TOKEN")?);
     let listener = Polling::builder(bot.clone())
         .timeout(Duration::from_secs(parse_env("POLLING_TIMEOUT")))
@@ -58,10 +62,9 @@ async fn main() -> anyhow::Result<()> {
 fn schema() -> UpdateHandler<HandlerErr> {
     use dptree::case;
 
-    let command_handler =
-        teloxide::filter_command::<Command, _>()
-            .branch(case![Command::Test].endpoint(test))
-            .branch(case![Command::Download(url)].endpoint(download));
+    let command_handler = teloxide::filter_command::<Command, _>()
+        .branch(case![Command::Test].endpoint(test))
+        .branch(case![Command::Download(url)].endpoint(download));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -87,7 +90,6 @@ async fn test(bot: Bot, msg: Message) -> HandlerResult {
 }
 
 async fn download(bot: Bot, msg: Message, url: String) -> HandlerResult {
-
     Ok(())
 }
 
