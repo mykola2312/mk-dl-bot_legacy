@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use serde_json;
-use std::process::Command;
+use std::process::Output;
+use tokio::process::Command;
 
 #[derive(Deserialize, Debug)]
 pub struct YtDlpFormat {
@@ -23,12 +24,23 @@ pub struct YtDlpInfo {
     pub formats: Vec<YtDlpFormat>,
 }
 
-enum YtDlpError {
-    SpawnError,
+pub enum YtDlpError {
+    CommandError(std::io::Error),
 }
 
 pub struct YtDlp {}
 
 impl YtDlp {
-    pub async fn load_info(url: &str) {}
+    pub async fn load_info(url: &str) -> Result<(), YtDlpError> {
+        let output = match Command::new("python")
+            .args(["-m", "yt_dlp", url, "-j"])
+            .output()
+            .await
+        {
+            Ok(output) => output,
+            Err(e) => return Err(YtDlpError::CommandError(e)),
+        };
+
+        Ok(())
+    }
 }
