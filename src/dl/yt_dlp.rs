@@ -13,20 +13,22 @@ pub struct YtDlpFormat {
     pub vcodec: Option<String>,
     pub acodec: Option<String>,
     pub abr: Option<f32>,
-    pub vbr: Option<f32>
+    pub vbr: Option<f32>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct YtDlpInfo {
     pub id: String,
     pub title: String,
-    pub formats: Vec<YtDlpFormat>
+    pub formats: Vec<YtDlpFormat>,
+}
+
+enum YtDlpError {
+    SpawnError,
 }
 
 pub struct YtDlp {}
 
 impl YtDlp {
-    pub fn load_info(url: &str) {
-        
-    }
+    pub async fn load_info(url: &str) {}
 }
