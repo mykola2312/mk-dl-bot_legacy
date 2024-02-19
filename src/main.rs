@@ -11,7 +11,6 @@ use teloxide::dispatching::UpdateHandler;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 
 mod dl;
-use dl::download::download_url;
 
 type State = ();
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
@@ -88,10 +87,6 @@ async fn test(bot: Bot, msg: Message) -> HandlerResult {
 }
 
 async fn download(bot: Bot, msg: Message, url: String) -> HandlerResult {
-    match download_url(url).await {
-        Ok(_) => bot.send_message(msg.chat.id, "downloaded"),
-        Err(_) => bot.send_message(msg.chat.id, "failed to download")
-    }.await?;
 
     Ok(())
 }
