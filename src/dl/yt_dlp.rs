@@ -1,6 +1,6 @@
+use core::fmt;
 use serde::Deserialize;
 use serde_json;
-use core::fmt;
 use std::str::Utf8Error;
 use tokio::process::Command;
 
@@ -29,7 +29,26 @@ pub struct YtDlpInfo {
 pub enum YtDlpError {
     CommandError(std::io::Error),
     UtfError(Utf8Error),
-    ErrorMessage(String)
+    ErrorMessage(String),
+    JsonError,
+}
+
+impl From<std::io::Error> for YtDlpError {
+    fn from(value: std::io::Error) -> Self {
+        Self::CommandError(value)
+    }
+}
+
+impl From<Utf8Error> for YtDlpError {
+    fn from(value: Utf8Error) -> Self {
+        Self::UtfError(value)
+    }
+}
+
+impl From<serde_json::Error> for YtDlpError {
+    fn from(_value: serde_json::Error) -> Self {
+        Self::JsonError
+    }
 }
 
 impl fmt::Display for YtDlpError {
@@ -38,7 +57,8 @@ impl fmt::Display for YtDlpError {
         match self {
             YTE::CommandError(e) => write!(f, "Command::new - {}", e),
             YTE::UtfError(_) => write!(f, "Error while decoding UTF8"),
-            YTE::ErrorMessage(msg) => write!(f, "yt-dlp error - {}", msg)
+            YTE::ErrorMessage(msg) => write!(f, "yt-dlp error - {}", msg),
+            YTE::JsonError => write!(f, "json parsing error"),
         }
     }
 }
@@ -46,22 +66,19 @@ impl fmt::Display for YtDlpError {
 pub struct YtDlp {}
 
 impl YtDlp {
-    pub async fn load_info(url: &str) -> Result<(), YtDlpError> {
-        let output = match Command::new("python")
+    pub async fn load_info(url: &str) -> Result<YtDlpInfo, YtDlpError> {
+        let output = Command::new("python")
             .args(["-m", "yt_dlp", url, "-j"])
             .output()
-            .await
-        {
-            Ok(output) => output,
-            Err(e) => return Err(YtDlpError::CommandError(e)),
-        };
+            .await?;
 
         if output.stdout.is_empty() && !output.stderr.is_empty() {
-            return match std::str::from_utf8(&output.stderr) {
-                Ok(message) => Err(YtDlpError::ErrorMessage(message.to_string())),
-                Err(utf8_error) => Err(YtDlpError::UtfError(utf8_error))
-            };
+            let message = std::str::from_utf8(&output.stderr)?;
+            return Err(YtDlpError::ErrorMessage(message.to_string()));
         }
-        Ok(())
+
+        let info: YtDlpInfo = serde_json::from_slice(&output.stdout)?;
+
+        Ok(info)
     }
 }
