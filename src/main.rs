@@ -11,6 +11,7 @@ use teloxide::dispatching::UpdateHandler;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 
 mod dl;
+use dl::yt_dlp::YtDlp;
 
 type State = ();
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
@@ -35,7 +36,10 @@ where
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
-    bot_main().await
+    let _ = YtDlp::load_info(env::var("TEST_URL")?.as_str()).await;
+
+    Ok(())
+    //bot_main().await
 }
 
 async fn bot_main() -> anyhow::Result<()> {
