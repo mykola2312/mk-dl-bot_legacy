@@ -12,10 +12,22 @@ pub struct YtDlpFormat {
     pub width: Option<u16>,
     pub height: Option<u16>,
     pub ext: String,
-    pub vcodec: Option<String>,
     pub acodec: Option<String>,
+    pub vcodec: Option<String>,
     pub abr: Option<f32>,
     pub vbr: Option<f32>,
+}
+
+impl YtDlpFormat {
+    pub fn process(&mut self) {
+        if self.acodec.as_ref().is_some_and(|v| v == "none") {
+            self.acodec = None
+        }
+
+        if self.vcodec.as_ref().is_some_and(|v| v == "none") {
+            self.vcodec = None
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -23,6 +35,14 @@ pub struct YtDlpInfo {
     pub id: String,
     pub title: String,
     pub formats: Vec<YtDlpFormat>,
+}
+
+impl YtDlpInfo {
+    pub fn process(&mut self) {
+        for format in &mut self.formats {
+            format.process()
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -77,7 +97,8 @@ impl YtDlp {
             return Err(YtDlpError::ErrorMessage(message.to_string()));
         }
 
-        let info: YtDlpInfo = serde_json::from_slice(&output.stdout)?;
+        let mut info: YtDlpInfo = serde_json::from_slice(&output.stdout)?;
+        info.process();
 
         Ok(info)
     }

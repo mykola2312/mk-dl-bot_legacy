@@ -36,7 +36,10 @@ where
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
-    let _ = YtDlp::load_info(env::var("TEST_URL")?.as_str()).await;
+    let info = YtDlp::load_info(env::var("TEST_URL")?.as_str())
+        .await
+        .expect("load_info");
+    dbg!(info);
 
     Ok(())
     //bot_main().await
