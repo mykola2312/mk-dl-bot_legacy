@@ -83,7 +83,7 @@ impl YtDlpInfo {
     }
 
     pub fn best_video_format(&self) -> Option<&YtDlpFormat> {
-        let mut formats: Vec<VideoFormat> = self
+        let format = self
             .formats
             .iter()
             .filter_map(|f| {
@@ -97,10 +97,9 @@ impl YtDlpInfo {
                     None
                 }
             })
-            .collect();
-        formats.sort_unstable_by_key(|f| (f.width, f.height));
-
-        match formats.last() {
+            .max_by_key(|f| (f.width, f.height));
+        
+        match format {
             Some(vf) => Some(vf.format),
             None => None,
         }
