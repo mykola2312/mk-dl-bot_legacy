@@ -1,9 +1,8 @@
+use super::spawn::{spawn, SpawnError};
 use core::fmt;
+use ordered_float::OrderedFloat;
 use serde::Deserialize;
 use serde_json;
-use std::str::Utf8Error;
-use tokio::process::Command;
-use ordered_float::OrderedFloat;
 
 #[derive(Deserialize, Debug)]
 pub struct YtDlpFormat {
@@ -27,7 +26,7 @@ struct VideoFormat<'a> {
 
 struct AudioFormat<'a> {
     pub format: &'a YtDlpFormat,
-    pub abr: f32
+    pub abr: f32,
 }
 
 impl YtDlpFormat {
@@ -103,7 +102,7 @@ impl YtDlpInfo {
                 }
             })
             .max_by_key(|f| (f.width, f.height));
-        
+
         match format {
             Some(vf) => Some(vf.format),
             None => None,
@@ -114,9 +113,14 @@ impl YtDlpInfo {
         let format = self
             .formats
             .iter()
-            .filter_map(|f| Some(AudioFormat { format: f, abr: f.abr? }))
+            .filter_map(|f| {
+                Some(AudioFormat {
+                    format: f,
+                    abr: f.abr?,
+                })
+            })
             .max_by_key(|f| OrderedFloat(f.abr));
-        
+
         match format {
             Some(af) => Some(af.format),
             None => None,
@@ -126,21 +130,13 @@ impl YtDlpInfo {
 
 #[derive(Debug)]
 pub enum YtDlpError {
-    CommandError(std::io::Error),
-    UtfError(Utf8Error),
-    ErrorMessage(String),
+    SpawnError(SpawnError),
     JsonError,
 }
 
-impl From<std::io::Error> for YtDlpError {
-    fn from(value: std::io::Error) -> Self {
-        Self::CommandError(value)
-    }
-}
-
-impl From<Utf8Error> for YtDlpError {
-    fn from(value: Utf8Error) -> Self {
-        Self::UtfError(value)
+impl From<SpawnError> for YtDlpError {
+    fn from(value: SpawnError) -> Self {
+        Self::SpawnError(value)
     }
 }
 
@@ -154,9 +150,7 @@ impl fmt::Display for YtDlpError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use YtDlpError as YTE;
         match self {
-            YTE::CommandError(e) => write!(f, "Command::new - {}", e),
-            YTE::UtfError(_) => write!(f, "Error while decoding UTF8"),
-            YTE::ErrorMessage(msg) => write!(f, "yt-dlp error - {}", msg),
+            YTE::SpawnError(e) => write!(f, "{}", e),
             YTE::JsonError => write!(f, "json parsing error"),
         }
     }
@@ -166,15 +160,7 @@ pub struct YtDlp {}
 
 impl YtDlp {
     pub async fn load_info(url: &str) -> Result<YtDlpInfo, YtDlpError> {
-        let output = Command::new("python")
-            .args(["-m", "yt_dlp", url, "-j"])
-            .output()
-            .await?;
-
-        if !output.status.success() {
-            let message = std::str::from_utf8(&output.stderr)?;
-            return Err(YtDlpError::ErrorMessage(message.to_string()));
-        }
+        let output = spawn("python", ["-m", "yt_dlp", url, "-j"]).await?;
 
         Ok(YtDlpInfo::parse(&output.stdout)?)
     }
