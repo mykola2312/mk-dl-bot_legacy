@@ -131,12 +131,16 @@ impl YtDlpInfo {
 #[derive(Debug)]
 pub enum YtDlpError {
     SpawnError(SpawnError),
+    ErrorMessage(String),   // keep it separate type if we ever plan to parse yt-dlp errors
     JsonError,
 }
 
 impl From<SpawnError> for YtDlpError {
     fn from(value: SpawnError) -> Self {
-        Self::SpawnError(value)
+        match value {
+            SpawnError::ErrorMessage(msg) => Self::ErrorMessage(msg),
+            _ => Self::SpawnError(value)
+        }
     }
 }
 
@@ -151,6 +155,7 @@ impl fmt::Display for YtDlpError {
         use YtDlpError as YTE;
         match self {
             YTE::SpawnError(e) => write!(f, "{}", e),
+            YTE::ErrorMessage(msg) => write!(f, "yt-dlp error - {}", msg),
             YTE::JsonError => write!(f, "json parsing error"),
         }
     }
