@@ -1,7 +1,7 @@
 use core::fmt;
 use serde::Deserialize;
 use serde_json;
-use std::{process::ExitStatus, str::Utf8Error};
+use std::str::Utf8Error;
 use tokio::process::Command;
 
 #[derive(Deserialize, Debug)]
@@ -16,6 +16,13 @@ pub struct YtDlpFormat {
     pub acodec: Option<String>,
     pub vbr: Option<f32>,
     pub abr: Option<f32>,
+}
+
+#[derive(Debug)]
+struct VideoFormat<'a> {
+    pub format: &'a YtDlpFormat,
+    pub width: u16,
+    pub height: u16,
 }
 
 impl YtDlpFormat {
@@ -75,12 +82,28 @@ impl YtDlpInfo {
         Ok(info)
     }
 
-    pub fn best_video_format(&self) -> Option<&str> {
-        //self.formats
-        //    .iter()
-            
+    pub fn best_video_format(&self) -> Option<&YtDlpFormat> {
+        let mut formats: Vec<VideoFormat> = self
+            .formats
+            .iter()
+            .filter_map(|f| {
+                if f.vcodec.is_some() && f.acodec.is_some() {
+                    Some(VideoFormat {
+                        format: &f,
+                        width: f.width?,
+                        height: f.height?,
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect();
+        formats.sort_unstable_by_key(|f| (f.width, f.height));
 
-        todo!()
+        match formats.last() {
+            Some(vf) => Some(vf.format),
+            None => None,
+        }
     }
 }
 
@@ -130,7 +153,7 @@ impl YtDlp {
             .args(["-m", "yt_dlp", url, "-j"])
             .output()
             .await?;
-        
+
         if !output.status.success() {
             let message = std::str::from_utf8(&output.stderr)?;
             return Err(YtDlpError::ErrorMessage(message.to_string()));

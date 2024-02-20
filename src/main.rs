@@ -39,9 +39,11 @@ async fn main() -> anyhow::Result<()> {
     let info = YtDlp::load_info(env::var("TEST_URL")?.as_str())
         .await
         .expect("load_info");
-    for format in info.formats {
-        println!("{}", format);
-    }
+    // for format in info.formats {
+    //     println!("{}", format);
+    // }
+    let video = info.best_video_format().unwrap();
+    println!("{}", video);
 
     Ok(())
     //bot_main().await
