@@ -3,6 +3,7 @@ use serde::Deserialize;
 use serde_json;
 use std::str::Utf8Error;
 use tokio::process::Command;
+use ordered_float::OrderedFloat;
 
 #[derive(Deserialize, Debug)]
 pub struct YtDlpFormat {
@@ -18,11 +19,15 @@ pub struct YtDlpFormat {
     pub abr: Option<f32>,
 }
 
-#[derive(Debug)]
 struct VideoFormat<'a> {
     pub format: &'a YtDlpFormat,
     pub width: u16,
     pub height: u16,
+}
+
+struct AudioFormat<'a> {
+    pub format: &'a YtDlpFormat,
+    pub abr: f32
 }
 
 impl YtDlpFormat {
@@ -101,6 +106,19 @@ impl YtDlpInfo {
         
         match format {
             Some(vf) => Some(vf.format),
+            None => None,
+        }
+    }
+
+    pub fn best_audio_format(&self) -> Option<&YtDlpFormat> {
+        let format = self
+            .formats
+            .iter()
+            .filter_map(|f| Some(AudioFormat { format: f, abr: f.abr? }))
+            .max_by_key(|f| OrderedFloat(f.abr));
+        
+        match format {
+            Some(af) => Some(af.format),
             None => None,
         }
     }

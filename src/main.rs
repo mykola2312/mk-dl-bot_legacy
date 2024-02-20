@@ -47,6 +47,9 @@ async fn main() -> anyhow::Result<()> {
     let video = info.best_av_format().unwrap();
     println!("{}", video);
 
+    let audio = info.best_audio_format().unwrap();
+    println!("{}", audio);
+
     Ok(())
     //bot_main().await
 }
