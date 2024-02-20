@@ -2,3 +2,6 @@
 .env
 *.json
 *.txt
+*.m4a
+*.mp3
+*.mp4
