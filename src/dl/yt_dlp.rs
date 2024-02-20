@@ -82,7 +82,7 @@ impl YtDlpInfo {
         Ok(info)
     }
 
-    pub fn best_video_format(&self) -> Option<&YtDlpFormat> {
+    pub fn best_av_format(&self) -> Option<&YtDlpFormat> {
         let format = self
             .formats
             .iter()

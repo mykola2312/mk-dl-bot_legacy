@@ -44,7 +44,7 @@ async fn main() -> anyhow::Result<()> {
     }
     println!("");
 
-    let video = info.best_video_format().unwrap();
+    let video = info.best_av_format().unwrap();
     println!("{}", video);
 
     Ok(())
