@@ -131,7 +131,7 @@ impl YtDlpInfo {
 #[derive(Debug)]
 pub enum YtDlpError {
     SpawnError(SpawnError),
-    ErrorMessage(String),   // keep it separate type if we ever plan to parse yt-dlp errors
+    ErrorMessage(String), // keep it separate type if we ever plan to parse yt-dlp errors
     JsonError,
 }
 
@@ -139,7 +139,7 @@ impl From<SpawnError> for YtDlpError {
     fn from(value: SpawnError) -> Self {
         match value {
             SpawnError::ErrorMessage(msg) => Self::ErrorMessage(msg),
-            _ => Self::SpawnError(value)
+            _ => Self::SpawnError(value),
         }
     }
 }
