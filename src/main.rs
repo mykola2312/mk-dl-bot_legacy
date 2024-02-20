@@ -11,6 +11,7 @@ use teloxide::dispatching::UpdateHandler;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 
 mod dl;
+use dl::ffmpeg::FFMpeg;
 use dl::yt_dlp::YtDlp;
 
 type State = ();
@@ -49,6 +50,8 @@ async fn main() -> anyhow::Result<()> {
 
     let audio = info.best_audio_format().unwrap();
     println!("{}", audio);
+
+    println!("abr {}", FFMpeg::round_mp3_bitrate(129.492));
 
     Ok(())
     //bot_main().await
