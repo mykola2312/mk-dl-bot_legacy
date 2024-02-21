@@ -53,8 +53,8 @@ fn schema() -> UpdateHandler<HandlerErr> {
     use dptree::case;
 
     let command_handler = teloxide::filter_command::<Command, _>()
-        .branch(case![Command::Test].endpoint(test))
-        .branch(case![Command::Download(url)].endpoint(download));
+        .branch(case![Command::Test].endpoint(cmd_test))
+        .branch(case![Command::Download(url)].endpoint(cmd_download));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -73,13 +73,13 @@ enum Command {
     Download(String),
 }
 
-async fn test(bot: Bot, msg: Message) -> HandlerResult {
+async fn cmd_test(bot: Bot, msg: Message) -> HandlerResult {
     bot.send_message(msg.chat.id, "test response").await?;
 
     Ok(())
 }
 
-async fn download(bot: Bot, msg: Message, url: String) -> HandlerResult {
+async fn cmd_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
     Ok(())
 }
 

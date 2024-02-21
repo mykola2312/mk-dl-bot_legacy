@@ -134,6 +134,7 @@ pub enum YtDlpError {
     ErrorMessage(String), // keep it separate type if we ever plan to parse yt-dlp errors
     JsonError,
 }
+// ^(?:ERROR: \[.*\] \S* )(.*$) - regex for matching yt-dlp's youtube errors
 
 impl From<SpawnError> for YtDlpError {
     fn from(value: SpawnError) -> Self {
