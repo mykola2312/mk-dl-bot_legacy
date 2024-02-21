@@ -1,4 +1,5 @@
 use super::spawn::{spawn, SpawnError};
+use std::fs;
 use core::fmt;
 use ordered_float::OrderedFloat;
 use serde::Deserialize;
@@ -133,6 +134,7 @@ pub enum YtDlpError {
     SpawnError(SpawnError),
     ErrorMessage(String), // keep it separate type if we ever plan to parse yt-dlp errors
     JsonError,
+    NoFilePresent
 }
 // ^(?:ERROR: \[.*\] \S* )(.*$) - regex for matching yt-dlp's youtube errors
 
@@ -158,6 +160,7 @@ impl fmt::Display for YtDlpError {
             YTE::SpawnError(e) => write!(f, "{}", e),
             YTE::ErrorMessage(msg) => write!(f, "yt-dlp error - {}", msg),
             YTE::JsonError => write!(f, "json parsing error"),
+            YTE::NoFilePresent => write!(f, "downloaded file doesn't exists")
         }
     }
 }
@@ -169,6 +172,28 @@ impl YtDlp {
         let output = spawn("python", ["-m", "yt_dlp", url, "-j"]).await?;
 
         Ok(YtDlpInfo::parse(&output.stdout)?)
+    }
+
+    pub async fn download(url: &str, format_id: &str, output_path: &str) -> Result<(), YtDlpError> {
+        spawn(
+            "python",
+            [
+                "-m",
+                "yt_dlp",
+                url,
+                "-f",
+                format_id,
+                "-o",
+                output_path,
+                "--force-overwrites",
+            ],
+        )
+        .await?;
+
+        match fs::metadata(output_path) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(YtDlpError::NoFilePresent)
+        }
     }
 }
 
