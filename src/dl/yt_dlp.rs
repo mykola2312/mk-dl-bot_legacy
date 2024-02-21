@@ -170,3 +170,29 @@ impl YtDlp {
         Ok(YtDlpInfo::parse(&output.stdout)?)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::YtDlp;
+    use std::env;
+
+    #[tokio::test]
+    async fn best_av_format() {
+        dotenv::from_filename(".env.test").unwrap();
+        let info = YtDlp::load_info(env::var("TEST_URL").unwrap().as_str())
+            .await
+            .unwrap();
+        let video = info.best_av_format().unwrap();
+        assert_eq!(video.format_id, "22");
+    }
+
+    #[tokio::test]
+    async fn best_audio_format() {
+        dotenv::from_filename(".env.test").unwrap();
+        let info = YtDlp::load_info(env::var("TEST_URL").unwrap().as_str())
+            .await
+            .unwrap();
+        let video = info.best_audio_format().unwrap();
+        assert_eq!(video.format_id, "140");
+    }
+}
