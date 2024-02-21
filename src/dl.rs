@@ -10,7 +10,7 @@ pub mod yt_dlp;
 pub enum DownloadError {
     Message(String),
     NoFormatFound,
-    MakePathError
+    MakePathError,
 }
 
 impl From<SpawnError> for DownloadError {
@@ -25,12 +25,12 @@ impl From<YtDlpError> for DownloadError {
     }
 }
 
-fn make_download_path(info: &YtDlpInfo, format: &YtDlpFormat) -> Option<String> {
+fn make_download_path(info: &YtDlpInfo, format: &YtDlpFormat) -> Result<String, DownloadError> {
     std::env::temp_dir()
         .join(format!("{}.{}", info.id, format.ext))
         .into_os_string()
         .into_string()
-        .ok()
+        .map_err(|e| DownloadError::MakePathError)
 }
 
 pub async fn download(url: &str) -> Result<String, DownloadError> {
@@ -39,10 +39,7 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
         Some(av) => av,
         None => return Err(DownloadError::NoFormatFound),
     };
-    let output_path = match make_download_path(&info, &av) {
-        Some(path) => path,
-        None => return Err(DownloadError::MakePathError)
-    };
+    let output_path = make_download_path(&info, &av)?;
 
     todo!()
 }
