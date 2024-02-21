@@ -1,5 +1,8 @@
+use std::fmt;
 use std::fs;
 use std::path::Path;
+
+use teloxide::types::Message;
 
 use self::spawn::SpawnError;
 use self::yt_dlp::{YtDlp, YtDlpError, YtDlpFormat, YtDlpInfo};
@@ -26,6 +29,20 @@ impl From<YtDlpError> for DownloadError {
     }
 }
 
+impl fmt::Display for DownloadError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use DownloadError as DE;
+        match &self {
+            DE::Message(msg) => write!(f, "{}", msg),
+            DE::NoFormatFound => write!(
+                f,
+                "no best format found. you may want to specify one yourself"
+            ),
+            DE::MakePathError => write!(f, "failed to make path for download file"),
+        }
+    }
+}
+
 fn make_download_path(info: &YtDlpInfo, format: &YtDlpFormat) -> Result<String, DownloadError> {
     std::env::temp_dir()
         .join(format!("{}.{}", info.id, format.ext))
@@ -37,7 +54,7 @@ fn make_download_path(info: &YtDlpInfo, format: &YtDlpFormat) -> Result<String, 
 fn file_exists(path: &str) -> bool {
     match fs::metadata(path) {
         Ok(_) => true,
-        Err(_) => false
+        Err(_) => false,
     }
 }
 
@@ -53,7 +70,7 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
         Some(av) => av,
         None => return Err(DownloadError::NoFormatFound),
     };
-    
+
     let output_path = make_download_path(&info, &av)?;
     if let Err(e) = YtDlp::download(url, &av.format_id, output_path.as_str()).await {
         delete_if_exists(&output_path);

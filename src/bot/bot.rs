@@ -7,7 +7,11 @@ use std::time::Duration;
 use teloxide::dispatching::dialogue;
 use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::UpdateHandler;
+use teloxide::types::InputFile;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
+
+use crate::dl::delete_if_exists;
+use crate::dl::download;
 
 type State = ();
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
@@ -80,6 +84,22 @@ async fn cmd_test(bot: Bot, msg: Message) -> HandlerResult {
 }
 
 async fn cmd_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
+    let output_path = match download(url.as_str()).await {
+        Ok(path) => path,
+        Err(e) => {
+            bot.send_message(msg.chat.id, e.to_string()).await?;
+            return Ok(());
+        }
+    };
+
+    if let Err(e) = bot
+        .send_video(msg.chat.id, InputFile::file(&output_path))
+        .await
+    {
+        delete_if_exists(&output_path);
+        return Err(Box::new(e));
+    }
+
     Ok(())
 }
 
