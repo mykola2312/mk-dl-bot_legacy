@@ -39,7 +39,9 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
         Some(av) => av,
         None => return Err(DownloadError::NoFormatFound),
     };
+    
     let output_path = make_download_path(&info, &av)?;
+    YtDlp::download(url, &av.format_id, output_path.as_str()).await?;
 
-    todo!()
+    Ok(output_path)
 }
