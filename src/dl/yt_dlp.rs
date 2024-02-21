@@ -167,6 +167,7 @@ impl fmt::Display for YtDlpError {
 
 pub struct YtDlp {}
 
+// BUG: REAL ARGUMENT INJECTION! FIX ASAP
 impl YtDlp {
     pub async fn load_info(url: &str) -> Result<YtDlpInfo, YtDlpError> {
         let output = spawn("python", ["-m", "yt_dlp", url, "-j"]).await?;
