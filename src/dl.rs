@@ -1,12 +1,16 @@
+use std::path::Path;
+
 use self::spawn::SpawnError;
-use self::yt_dlp::YtDlpError;
+use self::yt_dlp::{YtDlp, YtDlpError, YtDlpFormat, YtDlpInfo};
 
 pub mod ffmpeg;
 mod spawn;
 pub mod yt_dlp;
 
 pub enum DownloadError {
-    Message(String)
+    Message(String),
+    NoFormatFound,
+    MakePathError
 }
 
 impl From<SpawnError> for DownloadError {
@@ -21,7 +25,24 @@ impl From<YtDlpError> for DownloadError {
     }
 }
 
+fn make_download_path(info: &YtDlpInfo, format: &YtDlpFormat) -> Option<String> {
+    std::env::temp_dir()
+        .join(format!("{}.{}", info.id, format.ext))
+        .into_os_string()
+        .into_string()
+        .ok()
+}
+
 pub async fn download(url: &str) -> Result<String, DownloadError> {
+    let info = YtDlp::load_info(url).await?;
+    let av = match info.best_av_format() {
+        Some(av) => av,
+        None => return Err(DownloadError::NoFormatFound),
+    };
+    let output_path = match make_download_path(&info, &av) {
+        Some(path) => path,
+        None => return Err(DownloadError::MakePathError)
+    };
 
     todo!()
 }

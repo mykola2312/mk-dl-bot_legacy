@@ -1,9 +1,9 @@
 use super::spawn::{spawn, SpawnError};
-use std::fs;
 use core::fmt;
 use ordered_float::OrderedFloat;
 use serde::Deserialize;
 use serde_json;
+use std::fs;
 
 #[derive(Deserialize, Debug)]
 pub struct YtDlpFormat {
@@ -134,7 +134,7 @@ pub enum YtDlpError {
     SpawnError(SpawnError),
     ErrorMessage(String), // keep it separate type if we ever plan to parse yt-dlp errors
     JsonError,
-    NoFilePresent
+    NoFilePresent,
 }
 // ^(?:ERROR: \[.*\] \S* )(.*$) - regex for matching yt-dlp's youtube errors
 
@@ -160,7 +160,7 @@ impl fmt::Display for YtDlpError {
             YTE::SpawnError(e) => write!(f, "{}", e),
             YTE::ErrorMessage(msg) => write!(f, "yt-dlp error - {}", msg),
             YTE::JsonError => write!(f, "json parsing error"),
-            YTE::NoFilePresent => write!(f, "downloaded file doesn't exists")
+            YTE::NoFilePresent => write!(f, "downloaded file doesn't exists"),
         }
     }
 }
@@ -192,7 +192,7 @@ impl YtDlp {
 
         match fs::metadata(output_path) {
             Ok(_) => Ok(()),
-            Err(_) => Err(YtDlpError::NoFilePresent)
+            Err(_) => Err(YtDlpError::NoFilePresent),
         }
     }
 }
