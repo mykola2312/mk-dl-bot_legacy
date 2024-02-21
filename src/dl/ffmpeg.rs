@@ -36,3 +36,22 @@ impl FFMpeg {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::dl::ffmpeg::FFMpeg;
+
+    #[test]
+    fn round_mp3_bitrate() {
+        assert_eq!(FFMpeg::round_mp3_bitrate(0.0), 32);
+        assert_eq!(FFMpeg::round_mp3_bitrate(30.803), 32);
+        assert_eq!(FFMpeg::round_mp3_bitrate(31.957), 32);
+        assert_eq!(FFMpeg::round_mp3_bitrate(47.245), 48);
+        assert_eq!(FFMpeg::round_mp3_bitrate(62.564), 64);
+        assert_eq!(FFMpeg::round_mp3_bitrate(124.216), 128);
+        assert_eq!(FFMpeg::round_mp3_bitrate(129.492), 160);
+        assert_eq!(FFMpeg::round_mp3_bitrate(320.1), 320);
+        assert_eq!(FFMpeg::round_mp3_bitrate(319.4), 320);
+        assert_eq!(FFMpeg::round_mp3_bitrate(999.99), 320);
+    }
+}
