@@ -29,6 +29,7 @@ impl FFMpeg {
                 "libmp3lame",
                 "-b:a",
                 bitrate.as_str(),
+                "-y",
                 output_path,
             ],
         )
