@@ -53,6 +53,10 @@ async fn main() -> anyhow::Result<()> {
 
     println!("abr {}", FFMpeg::round_mp3_bitrate(129.492));
 
+    FFMpeg::convert_to_mp3("audio.m4a", "audio.mp3", 160)
+        .await
+        .expect("convert");
+
     Ok(())
     //bot_main().await
 }

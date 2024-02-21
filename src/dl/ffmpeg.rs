@@ -19,6 +19,7 @@ impl FFMpeg {
         output_path: &str,
         bitrate: u16,
     ) -> Result<(), SpawnError> {
+        let bitrate = format!("{}k", bitrate);
         let output = spawn(
             "ffmpeg",
             [
@@ -27,7 +28,7 @@ impl FFMpeg {
                 "-codec:a",
                 "libmp3lame",
                 "-b:a",
-                "32k",
+                bitrate.as_str(),
                 output_path,
             ],
         )
