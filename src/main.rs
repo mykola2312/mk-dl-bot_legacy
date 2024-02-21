@@ -8,8 +8,7 @@ mod dl;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
-    //dotenv::from_filename(".env.test").ok();
-
+    
     bot_main().await?;
     Ok(())
 }
