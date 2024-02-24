@@ -34,6 +34,8 @@ impl fmt::Display for SpawnError {
     }
 }
 
+/* !!! The argument list could be exploited in a way to inject malicious arguments !!!
+   !!! and alter the way program executes and/or gain access to system             !!! */ 
 pub async fn spawn<I, S>(program: &str, args: I) -> Result<Output, SpawnError>
 where
     I: IntoIterator<Item = S>,
