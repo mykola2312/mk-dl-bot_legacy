@@ -83,7 +83,7 @@ async fn cmd_test(bot: Bot, msg: Message) -> HandlerResult {
     Ok(())
 }
 
-async fn cmd_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
+async fn bot_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
     let output_path = match download(url.as_str()).await {
         Ok(path) => path,
         Err(e) => {
@@ -101,6 +101,10 @@ async fn cmd_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
     }
 
     Ok(())
+}
+
+async fn cmd_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
+    bot_download(bot, msg, url).await
 }
 
 async fn handle_message(_bot: Bot, _dialogue: MyDialogue, msg: Message) -> HandlerResult {
