@@ -1,4 +1,5 @@
 use anyhow;
+use sqlx::migrate::MigrateDatabase;
 use std::env;
 use std::fmt;
 use std::str;
@@ -9,7 +10,7 @@ use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::UpdateHandler;
 use teloxide::types::InputFile;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
-use sqlx::SqlitePool;
+use sqlx::{Sqlite, SqlitePool};
 
 use super::util::make_database_url;
 
@@ -36,8 +37,12 @@ where
 }
 
 pub async fn bot_main() -> anyhow::Result<()> {
-    let db_path = make_database_url();
-    let db = SqlitePool::connect(&db_path).await?;
+    let db_url = make_database_url();
+    if !Sqlite::database_exists(&db_url).await.unwrap_or(false) {
+        Sqlite::create_database(&db_url).await.expect("failed to create database");
+    }
+
+    let db = SqlitePool::connect(&db_url).await?;
 
     let bot = Bot::new(env::var("BOT_TOKEN")?);
     let listener = Polling::builder(bot.clone())
@@ -47,7 +52,7 @@ pub async fn bot_main() -> anyhow::Result<()> {
         .build();
 
     Dispatcher::builder(bot, schema())
-        .dependencies(dptree::deps![db])
+        .dependencies(dptree::deps![db, InMemStorage::<State>::new()])
         .enable_ctrlc_handler()
         .build()
         .dispatch_with_listener(
@@ -83,7 +88,8 @@ enum Command {
     Download(String),
 }
 
-async fn cmd_test(bot: Bot, msg: Message) -> HandlerResult {
+async fn cmd_test(bot: Bot, msg: Message, db: SqlitePool) -> HandlerResult {
+    dbg!(db);
     bot.send_message(msg.chat.id, "test response").await?;
 
     Ok(())
