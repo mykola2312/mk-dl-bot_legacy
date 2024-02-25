@@ -9,7 +9,7 @@ pub fn extract_url(text: &str) -> Option<&str> {
     let re = Regex::new(RE_URL).unwrap();
     match re.find(text) {
         Some(m) => Some(m.as_str()),
-        None => None
+        None => None,
     }
 }
 
@@ -23,8 +23,14 @@ mod tests {
 
     #[test]
     fn test_extract_url() {
-        assert_eq!(extract_url("test http://www.test.com/id/1"), Some("http://www.test.com/id/1"));
-        assert_eq!(extract_url("https://www.test.com 3"), Some("https://www.test.com"));
+        assert_eq!(
+            extract_url("test http://www.test.com/id/1"),
+            Some("http://www.test.com/id/1")
+        );
+        assert_eq!(
+            extract_url("https://www.test.com 3"),
+            Some("https://www.test.com")
+        );
         assert_eq!(extract_url("there is no any url"), None);
     }
 

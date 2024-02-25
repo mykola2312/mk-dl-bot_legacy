@@ -9,6 +9,9 @@ use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::UpdateHandler;
 use teloxide::types::InputFile;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
+use sqlx::SqlitePool;
+
+use super::util::make_database_url;
 
 use crate::dl::delete_if_exists;
 use crate::dl::download;
@@ -33,6 +36,9 @@ where
 }
 
 pub async fn bot_main() -> anyhow::Result<()> {
+    let db_path = make_database_url();
+    let db = SqlitePool::connect(&db_path).await?;
+
     let bot = Bot::new(env::var("BOT_TOKEN")?);
     let listener = Polling::builder(bot.clone())
         .timeout(Duration::from_secs(parse_env("POLLING_TIMEOUT")))
@@ -41,7 +47,7 @@ pub async fn bot_main() -> anyhow::Result<()> {
         .build();
 
     Dispatcher::builder(bot, schema())
-        .dependencies(dptree::deps![InMemStorage::<State>::new()])
+        .dependencies(dptree::deps![db])
         .enable_ctrlc_handler()
         .build()
         .dispatch_with_listener(
