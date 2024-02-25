@@ -10,7 +10,7 @@ anyhow = "1.0.75"
 dotenv = "0.15.0"
 tokio = { version = "1.32.0", features = ["rt-multi-thread", "macros", "process"] }
 teloxide = { version = "0.12.2", git ="https://github.com/teloxide/teloxide", features = ["macros"] }
-sqlx = { version = "0.7.3", features = [ "runtime-tokio", "tls-native-tls" ] }
+sqlx = { version = "0.7.3", features = [ "runtime-tokio", "tls-native-tls", "sqlite", "sqlx-sqlite" ] }
 serde = { version = "1.0.196", features = ["derive"] }
 serde_json = "1.0.113"
 ordered-float = "4.2.0"
