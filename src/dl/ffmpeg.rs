@@ -22,7 +22,7 @@ impl FFMpeg {
         let bitrate = format!("{}k", bitrate);
         let output = spawn(
             "ffmpeg",
-            [
+            &[
                 "-i",
                 input_path,
                 "-codec:a",
