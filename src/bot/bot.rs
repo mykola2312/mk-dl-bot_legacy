@@ -106,6 +106,7 @@ async fn bot_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
     let output_path = match download(url.as_str()).await {
         Ok(path) => path,
         Err(e) => {
+            event!(Level::ERROR, "{}", e.to_string());
             bot.send_message(msg.chat.id, e.to_string()).await?;
             return Ok(());
         }

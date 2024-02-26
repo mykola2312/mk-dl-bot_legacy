@@ -4,6 +4,7 @@ use ordered_float::OrderedFloat;
 use serde::Deserialize;
 use serde_json;
 use std::fs;
+use tracing::{event, Level};
 
 #[derive(Deserialize, Debug)]
 pub struct YtDlpFormat {
@@ -106,7 +107,10 @@ impl YtDlpInfo {
 
         match format {
             Some(vf) => Some(vf.format),
-            None => None,
+            None => {
+                event!(Level::ERROR, "no av format for {}", self.id);
+                None
+            }
         }
     }
 
@@ -124,7 +128,10 @@ impl YtDlpInfo {
 
         match format {
             Some(af) => Some(af.format),
-            None => None,
+            None => {
+                event!(Level::ERROR, "no audio format for {}", self.id);
+                None
+            }
         }
     }
 }

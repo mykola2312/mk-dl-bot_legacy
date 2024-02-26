@@ -17,7 +17,9 @@ pub fn log_init() {
         .with_writer(io::stderr)
         .with_filter(LevelFilter::ERROR);
 
-    let file_layer = fmt::layer().with_writer(log_appender);
+    let file_layer = fmt::layer()
+        .with_writer(log_appender)
+        .with_filter(LevelFilter::INFO);
 
     tracing_subscriber::registry()
         .with(stderr_layer)
