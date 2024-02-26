@@ -1,25 +1,26 @@
+use std::io;
+use tracing::level_filters::LevelFilter;
+use tracing_appender::rolling::{RollingFileAppender, Rotation};
+use tracing_subscriber::{fmt, layer::SubscriberExt, prelude::*};
+
 use super::util::VAR_LOG;
-use tracing::Level;
-use tracing_appender::{
-    non_blocking,
-    rolling::{RollingFileAppender, Rotation},
-};
-use tracing_subscriber::fmt;
 
 pub fn log_init() {
-    let file_appender = RollingFileAppender::builder()
+    let log_appender = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
         .filename_prefix("mk-dl-bot.log")
         .max_log_files(7)
         .build(VAR_LOG)
         .unwrap();
 
-    //let (non_blocking, _guard) = non_blocking(file_appender);
+    let stderr_layer = fmt::layer()
+        .with_writer(io::stderr)
+        .with_filter(LevelFilter::ERROR);
 
-    let subscriber = fmt()
-        .with_writer(file_appender)
-        .with_ansi(true)
-        .with_max_level(Level::TRACE)
-        .pretty()
+    let file_layer = fmt::layer().with_writer(log_appender);
+
+    tracing_subscriber::registry()
+        .with(stderr_layer)
+        .with(file_layer)
         .init();
 }
