@@ -1,11 +1,9 @@
 use super::util::VAR_LOG;
-use tracing::subscriber::set_global_default;
 use tracing::Level;
 use tracing_appender::{
     non_blocking,
     rolling::{RollingFileAppender, Rotation},
 };
-use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::fmt;
 
 pub fn log_init() {
@@ -16,14 +14,12 @@ pub fn log_init() {
         .build(VAR_LOG)
         .unwrap();
 
-    let (non_blocking, guard) = non_blocking(file_appender);
-    let file_layer = fmt::layer().with_ansi(true).with_writer(non_blocking);
+    //let (non_blocking, _guard) = non_blocking(file_appender);
 
     let subscriber = fmt()
+        .with_writer(file_appender)
         .with_ansi(true)
         .with_max_level(Level::TRACE)
         .pretty()
-        .finish()
-        .with(file_layer);
-    set_global_default(subscriber).expect("set_global_default subscriber");
+        .init();
 }
