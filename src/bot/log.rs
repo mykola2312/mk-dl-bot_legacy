@@ -35,6 +35,7 @@ pub fn log_init() {
         .with_filter(LevelFilter::ERROR);
 
     let file_layer = fmt::layer()
+        .with_ansi(false)
         .with_writer(log_appender)
         .with_filter(TeloxideNoiseFilter {})
         .with_filter(LevelFilter::INFO);
