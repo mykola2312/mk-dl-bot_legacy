@@ -1,5 +1,7 @@
 use anyhow;
 use sqlx::migrate::MigrateDatabase;
+use sqlx::{Sqlite, SqlitePool};
+use tracing::{event, Level};
 use std::env;
 use std::fmt;
 use std::str;
@@ -10,8 +12,8 @@ use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::UpdateHandler;
 use teloxide::types::InputFile;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
-use sqlx::{Sqlite, SqlitePool};
 
+use super::log::log_init;
 use super::util::make_database_url;
 
 use crate::dl::delete_if_exists;
@@ -37,9 +39,14 @@ where
 }
 
 pub async fn bot_main() -> anyhow::Result<()> {
+    log_init();
+    event!(Level::INFO, "start");
+
     let db_url = make_database_url();
     if !Sqlite::database_exists(&db_url).await.unwrap_or(false) {
-        Sqlite::create_database(&db_url).await.expect("failed to create database");
+        Sqlite::create_database(&db_url)
+            .await
+            .expect("failed to create database");
     }
 
     let db = SqlitePool::connect(&db_url).await?;
