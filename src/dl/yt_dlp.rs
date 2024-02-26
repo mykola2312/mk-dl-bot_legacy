@@ -170,7 +170,7 @@ pub struct YtDlp {}
 // BUG: REAL ARGUMENT INJECTION! FIX ASAP
 impl YtDlp {
     pub async fn load_info(url: &str) -> Result<YtDlpInfo, YtDlpError> {
-        let output = spawn("python", ["-m", "yt_dlp", url, "-j"]).await?;
+        let output = spawn("python", &["-m", "yt_dlp", url, "-j"]).await?;
 
         Ok(YtDlpInfo::parse(&output.stdout)?)
     }
@@ -178,7 +178,7 @@ impl YtDlp {
     pub async fn download(url: &str, format_id: &str, output_path: &str) -> Result<(), YtDlpError> {
         spawn(
             "python",
-            [
+            &[
                 "-m",
                 "yt_dlp",
                 url,

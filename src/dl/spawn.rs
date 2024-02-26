@@ -1,8 +1,8 @@
 use core::fmt;
-use std::ffi::OsStr;
 use std::process::Output;
 use std::str::Utf8Error;
 use tokio::process::Command;
+use tracing::{event, Level};
 
 #[derive(Debug)]
 pub enum SpawnError {
@@ -36,11 +36,13 @@ impl fmt::Display for SpawnError {
 
 /* !!! The argument list could be exploited in a way to inject malicious arguments !!!
 !!! and alter the way program executes and/or gain access to system             !!! */
-pub async fn spawn<I, S>(program: &str, args: I) -> Result<Output, SpawnError>
-where
-    I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
+pub async fn spawn(program: &str, args: &[&str]) -> Result<Output, SpawnError>
 {
+    {
+        let cmd_args = args.join(" ");
+        event!(Level::INFO, "{} {}", program, cmd_args);
+    }
+
     let output = Command::new(program).args(args).output().await?;
 
     if !output.status.success() {
