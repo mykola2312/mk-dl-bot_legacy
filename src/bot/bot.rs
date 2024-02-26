@@ -1,7 +1,6 @@
 use anyhow;
 use sqlx::migrate::MigrateDatabase;
 use sqlx::{Sqlite, SqlitePool};
-use tracing::{event, Level};
 use std::env;
 use std::fmt;
 use std::str;
@@ -12,6 +11,7 @@ use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::UpdateHandler;
 use teloxide::types::InputFile;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
+use tracing::{event, Level};
 
 use super::log::log_init;
 use super::util::make_database_url;
