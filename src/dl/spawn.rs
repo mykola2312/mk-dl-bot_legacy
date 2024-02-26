@@ -36,8 +36,7 @@ impl fmt::Display for SpawnError {
 
 /* !!! The argument list could be exploited in a way to inject malicious arguments !!!
 !!! and alter the way program executes and/or gain access to system             !!! */
-pub async fn spawn(program: &str, args: &[&str]) -> Result<Output, SpawnError>
-{
+pub async fn spawn(program: &str, args: &[&str]) -> Result<Output, SpawnError> {
     {
         let cmd_args = args.join(" ");
         event!(Level::INFO, "{} {}", program, cmd_args);

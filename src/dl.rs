@@ -1,8 +1,6 @@
 use std::fmt;
 use std::fs;
-use std::path::Path;
-
-use teloxide::types::Message;
+use tracing::{event, Level};
 
 use self::spawn::SpawnError;
 use self::yt_dlp::{YtDlp, YtDlpError, YtDlpFormat, YtDlpInfo};
@@ -60,11 +58,15 @@ fn file_exists(path: &str) -> bool {
 
 pub fn delete_if_exists(path: &str) {
     if file_exists(path) {
-        fs::remove_file(path);
+        if let Err(e) = fs::remove_file(path) {
+            event!(Level::ERROR, "{}", e);
+        }
     }
 }
 
 pub async fn download(url: &str) -> Result<String, DownloadError> {
+    event!(Level::INFO, "url {}", url);
+
     let info = YtDlp::load_info(url).await?;
     let av = match info.best_av_format() {
         Some(av) => av,
