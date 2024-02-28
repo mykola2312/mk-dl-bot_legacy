@@ -127,6 +127,6 @@ async fn cmd_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
     bot_download(bot, msg, url).await
 }
 
-async fn handle_message(_bot: Bot, _dialogue: MyDialogue, msg: Message) -> HandlerResult {
+async fn handle_message(_bot: Bot, _dialogue: MyDialogue, _msg: Message) -> HandlerResult {
     Ok(())
 }
