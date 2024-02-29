@@ -1,9 +1,9 @@
 use std::io;
 use tracing::{level_filters::LevelFilter, Subscriber};
-use tracing_appender::rolling::{RollingFileAppender, Rotation};
+//use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::{fmt, layer::SubscriberExt, layer::Filter, prelude::*};
 
-use super::util::VAR_LOG;
+//use super::util::VAR_LOG;
 
 // A layer filter to prevent polling timeout errors from clogging logs
 struct TeloxideNoiseFilter {}
@@ -22,26 +22,26 @@ impl<S: Subscriber> Filter<S> for TeloxideNoiseFilter {
 }
 
 pub fn log_init() {
-    let log_appender = RollingFileAppender::builder()
-        .rotation(Rotation::DAILY)
-        .filename_prefix("mk-dl-bot.log")
-        .max_log_files(7)
-        .build(VAR_LOG)
-        .unwrap();
+    // let log_appender = RollingFileAppender::builder()
+    //     .rotation(Rotation::DAILY)
+    //     .filename_prefix("mk-dl-bot.log")
+    //     .max_log_files(7)
+    //     .build(VAR_LOG)
+    //     .unwrap();
 
-    let stderr_layer = fmt::layer()
-        .with_writer(io::stderr)
-        .with_filter(TeloxideNoiseFilter {})
-        .with_filter(LevelFilter::ERROR);
+    // let file_layer = fmt::layer()
+    //     .with_ansi(false)
+    //     .with_writer(log_appender)
+    //     .with_filter(TeloxideNoiseFilter {})
+    //     .with_filter(LevelFilter::INFO);
 
-    let file_layer = fmt::layer()
-        .with_ansi(false)
-        .with_writer(log_appender)
+    let stdout_layer = fmt::layer()
+        .with_writer(io::stdout)
         .with_filter(TeloxideNoiseFilter {})
         .with_filter(LevelFilter::INFO);
 
     tracing_subscriber::registry()
-        .with(stderr_layer)
-        .with(file_layer)
+        .with(stdout_layer)
+        //.with(file_layer)
         .init();
 }
