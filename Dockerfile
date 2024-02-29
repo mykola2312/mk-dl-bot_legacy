@@ -17,6 +17,8 @@ RUN apk add --no-cache libgcc
 RUN apk add --no-cache ffmpeg python3 py3-pip
 RUN pip install --break-system-packages yt-dlp
 
-COPY --from=0 /app/target/release/mk-dl-bot .
+WORKDIR /app
+COPY migrations /app/
+COPY --from=0 /app/target/release/mk-dl-bot /app/
 
 ENTRYPOINT ["/mk-dl-bot"]
