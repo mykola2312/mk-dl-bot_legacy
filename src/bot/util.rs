@@ -1,13 +1,13 @@
 use std::path::Path;
 
 #[cfg(debug_assertions)]
-pub const VAR_LIB: &str = ".";
+pub const VAR_LIB: &str = "target/debug";
 
 #[cfg(not(debug_assertions))]
 pub const VAR_LIB: &str = "/var/lib/mk-dl-bot";
 
 #[cfg(debug_assertions)]
-pub const VAR_LOG: &str = ".";
+pub const VAR_LOG: &str = "target/debug";
 
 #[cfg(not(debug_assertions))]
 pub const VAR_LOG: &str = "/var/log/mk-dl-bot";
