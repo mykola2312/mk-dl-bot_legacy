@@ -50,6 +50,7 @@ pub async fn bot_main() -> anyhow::Result<()> {
     }
 
     let db = SqlitePool::connect(&db_url).await?;
+    sqlx::migrate!().run(&db).await?;
 
     let bot = Bot::new(env::var("BOT_TOKEN")?);
     let listener = Polling::builder(bot.clone())
