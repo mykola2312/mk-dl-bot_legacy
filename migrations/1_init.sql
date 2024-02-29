@@ -2,13 +2,19 @@ CREATE TABLE "user"
 (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
     tg_id               INTEGER NOT NULL UNIQUE,
+    username            TEXT    UNIQUE,
+    first_name          TEXT    NOT NULL,
+    last_name           TEXT,
     can_download        INTEGER NOT NULL,
     is_admin            INTEGER NOT NULL
 );
 
 CREATE TABLE "chat"
 (
-    tg_id               INTEGER PRIMARY KEY,
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    tg_id               INTEGER NOT NULL UNIQUE,
+    title               TEXT    NOT NULL,
+    username            TEXT,
     can_download        INTEGER NOT NULL
 );
 
