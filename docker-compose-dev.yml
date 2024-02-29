@@ -1,0 +1,9 @@
+services:
+  mk-dl-bot:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - db:/var/lib/mk-dl-bot
+volumes:
+  db:
