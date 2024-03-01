@@ -21,6 +21,13 @@ impl<S: Subscriber> Filter<S> for TeloxideNoiseFilter {
     }
 }
 
+
+#[cfg(debug_assertions)]
+const LOG_LEVEL: LevelFilter = LevelFilter::DEBUG;
+
+#[cfg(not(debug_assertions))]
+const LOG_LEVEL: LevelFilter = LevelFilter::INFO;
+
 pub fn log_init() {
     // let log_appender = RollingFileAppender::builder()
     //     .rotation(Rotation::DAILY)
@@ -38,7 +45,7 @@ pub fn log_init() {
     let stdout_layer = fmt::layer()
         .with_writer(io::stdout)
         .with_filter(TeloxideNoiseFilter {})
-        .with_filter(LevelFilter::INFO);
+        .with_filter(LOG_LEVEL);
 
     tracing_subscriber::registry()
         .with(stdout_layer)
