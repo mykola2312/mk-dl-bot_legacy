@@ -48,3 +48,5 @@ WHEN new.is_approved = 1
 BEGIN
     UPDATE user SET can_download = 1 WHERE user.id = new.requested_by;
 END;
+
+-- TODO: add dialog start table
