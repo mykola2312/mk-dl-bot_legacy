@@ -96,10 +96,38 @@ enum Command {
     Download(String),
 }
 
+#[derive(sqlx::FromRow, Debug)]
+struct DbUser {
+    pub id: i64,
+    pub tg_id: i64,
+    pub username: Option<String>,
+    pub first_name: String,
+    pub last_name: Option<String>,
+    pub can_download: i64,
+    pub is_admin: i64
+}
+
 async fn cmd_test(bot: Bot, msg: Message, db: SqlitePool) -> HandlerResult {
-    dbg!(db);
     bot.send_message(msg.chat.id, "test response").await?;
 
+    let user = msg.from().unwrap();
+    
+    let conn = db.acquire().await?;
+    sqlx::query("INSERT OR IGNORE user
+        (tg_id, user_name, first_name, last_name, can_download, is_admin)
+        VALUES ($1, $2, $3, $4, $5, $6);")
+        .bind(user.id.0 as i64)
+        .bind(&user.username)
+        .bind(&user.first_name)
+        .bind(&user.last_name)
+        .bind(0)
+        .bind(0)
+        .execute(&db).await.expect("insert");
+
+    let db_user = sqlx::query_as!(DbUser, 
+        "SELECT * FROM user WHERE id = 1 LIMIT 1;")
+        .fetch_one(&db).await.expect("fetch_one");
+    dbg!(db_user);
     Ok(())
 }
 
