@@ -6,7 +6,8 @@ CREATE TABLE "user"
     first_name          TEXT    NOT NULL,
     last_name           TEXT,
     can_download        INTEGER NOT NULL,
-    is_admin            INTEGER NOT NULL
+    is_admin            INTEGER NOT NULL,
+    has_private_chat    INTEGER NOT NULL
 );
 
 CREATE TABLE "chat"
@@ -48,5 +49,3 @@ WHEN new.is_approved = 1
 BEGIN
     UPDATE user SET can_download = 1 WHERE user.id = new.requested_by;
 END;
-
--- TODO: add dialog start table

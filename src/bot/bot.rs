@@ -1,19 +1,17 @@
 use anyhow;
-use sqlx::SqlitePool;
 use std::env;
 use std::fmt;
 use std::str;
 use std::str::FromStr;
-use std::sync::Arc;
 use std::time::Duration;
 use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
-use teloxide::types::Recipient;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
 
 use super::types::*;
 use crate::db::DbPool;
 
+use super::start::cmd_start;
 use super::dl::cmd_download;
 use super::op::cmd_op;
 
@@ -58,6 +56,7 @@ fn schema() -> UpdateHandler<HandlerErr> {
 
     let command_handler = teloxide::filter_command::<Command, _>()
         .branch(case![Command::Test].endpoint(cmd_test))
+        .branch(case![Command::Start].endpoint(cmd_start))
         .branch(case![Command::Download(url)].endpoint(cmd_download))
         .branch(case![Command::OP].endpoint(cmd_op));
 
@@ -74,6 +73,9 @@ fn schema() -> UpdateHandler<HandlerErr> {
 enum Command {
     Test,
 
+    #[command(alias = "start")]
+    Start,
+
     #[command(alias = "dl")]
     Download(String),
 
@@ -83,10 +85,12 @@ enum Command {
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
     bot.send_message(msg.chat.id, "test response").await?;
+    dbg!(msg);
 
     Ok(())
 }
 
 async fn handle_message(_bot: Bot, _dialogue: MyDialogue, _msg: Message) -> HandlerResult {
+    dbg!(_msg);
     Ok(())
 }

@@ -11,7 +11,7 @@ pub async fn create_user(
     sqlx::query(
         "INSERT OR IGNORE INTO user
         (tg_id, username, first_name, last_name, can_download, is_admin)
-        VALUES ($1,$2,$3,$4,$5,$6);",
+        VALUES ($1,$2,$3,$4,$5,$6,$7);",
     )
     .bind(user.id.0 as i64)
     .bind(&user.username)
@@ -19,6 +19,7 @@ pub async fn create_user(
     .bind(&user.last_name)
     .bind(can_download as i64)
     .bind(is_admin as i64)
+    .bind(0)
     .execute(db)
     .await?;
 
