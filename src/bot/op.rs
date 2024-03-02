@@ -33,12 +33,7 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
                         .execute(&db)
                         .await?;
 
-                    event!(
-                        Level::INFO,
-                        "opped {} - {}",
-                        target.tg_id,
-                        target.username_or_name()
-                    );
+                    event!(Level::INFO, "opped {}", target);
                     bot.send_message(msg.chat.id, "opped").await?;
                 } else {
                     bot.send_message(msg.chat.id, "You have to reply on target's message")

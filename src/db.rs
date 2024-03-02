@@ -1,6 +1,6 @@
 use sqlx::migrate::MigrateDatabase;
 use sqlx::{Sqlite, SqlitePool};
-use std::sync::Arc;
+use std::fmt;
 
 use super::util::make_database_url;
 
@@ -15,6 +15,13 @@ pub struct User {
     pub last_name: Option<String>,
     pub can_download: i64,
     pub is_admin: i64,
+    pub has_private_chat: i64,
+}
+
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} - {}", self.tg_id, self.username_or_name())
+    }
 }
 
 impl User {
