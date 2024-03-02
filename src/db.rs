@@ -3,6 +3,8 @@ use sqlx::{Sqlite, SqlitePool};
 
 use super::util::make_database_url;
 
+pub type DbPool = SqlitePool;
+
 #[derive(sqlx::FromRow)]
 pub struct User {
     pub id: i64,
@@ -13,6 +15,8 @@ pub struct User {
     pub can_download: i64,
     pub is_admin: i64,
 }
+
+pub mod user;
 
 #[derive(sqlx::FromRow)]
 pub struct Chat {
