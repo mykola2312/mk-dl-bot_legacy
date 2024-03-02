@@ -13,6 +13,8 @@ use log::log_init;
 mod db;
 use db::db_init;
 
+rust_i18n::i18n!("locales");
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
