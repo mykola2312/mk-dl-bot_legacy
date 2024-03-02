@@ -6,6 +6,7 @@ use tracing_subscriber::{fmt, layer::Filter, layer::SubscriberExt, prelude::*};
 //use super::util::VAR_LOG;
 
 // A layer filter to prevent polling timeout errors from clogging logs
+// BUG: it suppresses all errors, including from sqlx
 struct TeloxideNoiseFilter {}
 impl<S: Subscriber> Filter<S> for TeloxideNoiseFilter {
     fn enabled(
@@ -47,7 +48,7 @@ pub fn log_init() {
 
     let stdout_layer = fmt::layer()
         .with_writer(io::stdout)
-        .with_filter(TeloxideNoiseFilter {})
+        //.with_filter(TeloxideNoiseFilter {})
         .with_filter(LOG_LEVEL);
 
     tracing_subscriber::registry()
