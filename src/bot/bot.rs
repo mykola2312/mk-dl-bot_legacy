@@ -8,20 +8,11 @@ use std::time::Duration;
 use teloxide::dispatching::dialogue;
 use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::UpdateHandler;
-use teloxide::types::InputFile;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
 
-use crate::dl::delete_if_exists;
-use crate::dl::download;
-
-use crate::db;
-
-type State = ();
-type MyDialogue = Dialogue<State, InMemStorage<State>>;
-
-type HandlerErr = Box<dyn std::error::Error + Send + Sync>;
-type HandlerResult = Result<(), HandlerErr>;
+use super::dl::cmd_download;
+use super::types::*;
 
 fn parse_env<T>(name: &str) -> T
 where
@@ -83,35 +74,10 @@ enum Command {
     Download(String),
 }
 
-async fn cmd_test(bot: Bot, msg: Message, db: SqlitePool) -> HandlerResult {
+async fn cmd_test(bot: Bot, msg: Message, _db: SqlitePool) -> HandlerResult {
     bot.send_message(msg.chat.id, "test response").await?;
-    
-    Ok(())
-}
-
-async fn bot_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
-    let output_path = match download(url.as_str()).await {
-        Ok(path) => path,
-        Err(e) => {
-            event!(Level::ERROR, "{}", e.to_string());
-            bot.send_message(msg.chat.id, e.to_string()).await?;
-            return Ok(());
-        }
-    };
-
-    if let Err(e) = bot
-        .send_video(msg.chat.id, InputFile::file(&output_path))
-        .await
-    {
-        delete_if_exists(&output_path);
-        return Err(Box::new(e));
-    }
 
     Ok(())
-}
-
-async fn cmd_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
-    bot_download(bot, msg, url).await
 }
 
 async fn handle_message(_bot: Bot, _dialogue: MyDialogue, _msg: Message) -> HandlerResult {

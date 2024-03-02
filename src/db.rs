@@ -3,7 +3,6 @@ use sqlx::{Sqlite, SqlitePool};
 
 use super::util::make_database_url;
 
-
 #[derive(sqlx::FromRow)]
 pub struct User {
     pub id: i64,
@@ -21,7 +20,7 @@ pub struct Chat {
     pub tg_id: i64,
     pub username: Option<String>,
     pub title: String,
-    pub can_download: i64
+    pub can_download: i64,
 }
 
 #[derive(sqlx::FromRow)]
@@ -30,7 +29,7 @@ pub struct Link {
     pub domain: String,
     pub path: Option<String>,
     pub download_allowed: i64,
-    pub auto_download: i64
+    pub auto_download: i64,
 }
 
 #[derive(sqlx::FromRow)]
@@ -39,7 +38,7 @@ pub struct Request {
     pub requested_by: i64,
     pub approved_by: Option<i64>,
     pub message: Option<String>,
-    pub is_approved: i64
+    pub is_approved: i64,
 }
 
 pub async fn db_init() -> SqlitePool {
