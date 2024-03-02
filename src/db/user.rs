@@ -1,6 +1,7 @@
 use teloxide::types;
 
 use super::{DbPool, User};
+use crate::unwrap_or_create;
 
 pub async fn create_user(
     db: &DbPool,
@@ -37,11 +38,5 @@ pub async fn find_or_create_user(db: &DbPool, user: &types::User) -> Result<User
             .fetch_one(db)
             .await;
 
-    match res {
-        Ok(user) => return Ok(user),
-        Err(e) => match e {
-            sqlx::Error::RowNotFound => create_user(db, user, false, false).await,
-            _ => Err(e),
-        },
-    }
+    unwrap_or_create!(db, user, res, create_user, false, false)
 }
