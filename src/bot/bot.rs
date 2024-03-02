@@ -5,14 +5,13 @@ use std::fmt;
 use std::str;
 use std::str::FromStr;
 use std::time::Duration;
-use teloxide::dispatching::dialogue;
-use teloxide::dispatching::dialogue::InMemStorage;
-use teloxide::dispatching::UpdateHandler;
+use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
 
 use super::dl::cmd_download;
 use super::types::*;
+use crate::db::DbPool;
 
 fn parse_env<T>(name: &str) -> T
 where
@@ -74,7 +73,7 @@ enum Command {
     Download(String),
 }
 
-async fn cmd_test(bot: Bot, msg: Message, _db: SqlitePool) -> HandlerResult {
+async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
     bot.send_message(msg.chat.id, "test response").await?;
 
     Ok(())
