@@ -41,6 +41,8 @@ pub struct Chat {
     pub can_download: i64,
 }
 
+pub mod chat;
+
 #[derive(sqlx::FromRow)]
 pub struct Link {
     pub id: i64,
@@ -71,4 +73,27 @@ pub async fn db_init() -> SqlitePool {
     sqlx::migrate!().run(&db).await.unwrap();
 
     db
+}
+
+#[macro_export]
+macro_rules! unwrap_or_create {
+    ($db:expr, $tg:expr, $res:expr, $create:expr) => {
+        match $res {
+            Ok(obj) => return Ok(obj),
+            Err(e) => match e {
+                sqlx::Error::RowNotFound => $create($db, $tg).await,
+                _ => Err(e)
+            }
+        }
+    };
+
+    ($db:expr, $tg:expr, $res:expr, $create: expr $(, $args: expr)*) => {
+        match $res {
+            Ok(obj) => return Ok(obj),
+            Err(e) => match e {
+                sqlx::Error::RowNotFound => $create($db, $tg $(,$args)*).await,
+                _ => Err(e)
+            }
+        }
+    }
 }
