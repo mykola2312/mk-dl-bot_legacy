@@ -5,10 +5,21 @@ use bot::bot::bot_main;
 
 mod dl;
 
+mod util;
+
+mod log;
+use log::log_init;
+
+mod db;
+use db::db_init;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
-    bot_main().await?;
+    log_init();
+    let db = db_init().await;
+
+    bot_main(db).await?;
     Ok(())
 }

@@ -1,14 +1,18 @@
 use std::io;
 use tracing::{level_filters::LevelFilter, Subscriber};
 //use tracing_appender::rolling::{RollingFileAppender, Rotation};
-use tracing_subscriber::{fmt, layer::SubscriberExt, layer::Filter, prelude::*};
+use tracing_subscriber::{fmt, layer::Filter, layer::SubscriberExt, prelude::*};
 
 //use super::util::VAR_LOG;
 
 // A layer filter to prevent polling timeout errors from clogging logs
 struct TeloxideNoiseFilter {}
 impl<S: Subscriber> Filter<S> for TeloxideNoiseFilter {
-    fn enabled(&self, meta: &tracing::Metadata<'_>, _: &tracing_subscriber::layer::Context<'_,S>) -> bool {
+    fn enabled(
+        &self,
+        meta: &tracing::Metadata<'_>,
+        _: &tracing_subscriber::layer::Context<'_, S>,
+    ) -> bool {
         if let Some(module_path) = meta.module_path() {
             if module_path == "teloxide::error_handlers" {
                 false
@@ -20,7 +24,6 @@ impl<S: Subscriber> Filter<S> for TeloxideNoiseFilter {
         }
     }
 }
-
 
 #[cfg(debug_assertions)]
 const LOG_LEVEL: LevelFilter = LevelFilter::DEBUG;
