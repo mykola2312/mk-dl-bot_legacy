@@ -1,0 +1,5 @@
+test_response: "test response"
+op_yourself: "Now you're an admin"
+has_to_reply: "You have to reply on target's message"
+cant_do_that: "You can't do that bruh"
+started_private_chat: "Since you've initiated private chat now you could receive messages from bot"

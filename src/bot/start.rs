@@ -1,6 +1,6 @@
-use sqlx::Row;
 use teloxide::prelude::*;
 use tracing::{event, Level};
+use rust_i18n::t;
 
 use super::types::HandlerResult;
 use crate::db::user::find_or_create_user;
@@ -16,7 +16,7 @@ pub async fn cmd_start(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
                 .await?;
 
             event!(Level::INFO, "user {} has started private chat with bot", user);
-            bot.send_message(msg.chat.id, "Since you've initiated private chat now you could receive messages from bot").await?;
+            bot.send_message(msg.chat.id, t!("started_private_chat")).await?;
         }
     }
     Ok(())

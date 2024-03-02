@@ -1,6 +1,7 @@
 use sqlx::Row;
 use teloxide::prelude::*;
 use tracing::{event, Level};
+use rust_i18n::t;
 
 use super::types::HandlerResult;
 use crate::db::user::{create_user, find_or_create_user};
@@ -22,7 +23,7 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
                 user.tg_id,
                 user.username_or_name()
             );
-            bot.send_message(msg.chat.id, "Now you're an admin").await?;
+            bot.send_message(msg.chat.id, t!("op_yourself")).await?;
         } else {
             let user = find_or_create_user(&db, tg_user).await?;
             if user.is_admin == 1 {
@@ -36,11 +37,11 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
                     event!(Level::INFO, "opped {}", target);
                     bot.send_message(msg.chat.id, "opped").await?;
                 } else {
-                    bot.send_message(msg.chat.id, "You have to reply on target's message")
+                    bot.send_message(msg.chat.id, t!("has_to_reply"))
                         .await?;
                 }
             } else {
-                bot.send_message(msg.chat.id, "You can't do that bruh")
+                bot.send_message(msg.chat.id, t!("cant_do_that"))
                     .await?;
             }
         }

@@ -7,6 +7,7 @@ use std::time::Duration;
 use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
+use rust_i18n::t;
 
 use super::types::*;
 use crate::db::DbPool;
@@ -84,7 +85,7 @@ enum Command {
 }
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
-    bot.send_message(msg.chat.id, "test response").await?;
+    bot.send_message(msg.chat.id, t!("test_response")).await?;
     dbg!(msg);
 
     Ok(())
