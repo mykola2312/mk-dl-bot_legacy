@@ -1,6 +1,5 @@
 use anyhow;
-use sqlx::migrate::MigrateDatabase;
-use sqlx::{Sqlite, SqlitePool};
+use sqlx::SqlitePool;
 use std::env;
 use std::fmt;
 use std::str;
@@ -12,9 +11,6 @@ use teloxide::dispatching::UpdateHandler;
 use teloxide::types::InputFile;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
-
-use super::log::log_init;
-use super::util::make_database_url;
 
 use crate::dl::delete_if_exists;
 use crate::dl::download;
@@ -38,19 +34,10 @@ where
     .expect(format!("env '{}' parse error", name).as_str())
 }
 
-pub async fn bot_main() -> anyhow::Result<()> {
-    log_init();
+pub async fn bot_main(db: SqlitePool) -> anyhow::Result<()> {
     event!(Level::INFO, "start");
 
-    let db_url = make_database_url();
-    if !Sqlite::database_exists(&db_url).await.unwrap_or(false) {
-        Sqlite::create_database(&db_url)
-            .await
-            .expect("failed to create database");
-    }
-
-    let db = SqlitePool::connect(&db_url).await?;
-    sqlx::migrate!().run(&db).await?;
+    // db_init
 
     let bot = Bot::new(env::var("BOT_TOKEN")?);
     let listener = Polling::builder(bot.clone())
@@ -104,29 +91,33 @@ struct DbUser {
     pub first_name: String,
     pub last_name: Option<String>,
     pub can_download: i64,
-    pub is_admin: i64
+    pub is_admin: i64,
 }
 
 async fn cmd_test(bot: Bot, msg: Message, db: SqlitePool) -> HandlerResult {
     bot.send_message(msg.chat.id, "test response").await?;
 
     let user = msg.from().unwrap();
-    
-    let conn = db.acquire().await?;
-    sqlx::query("INSERT OR IGNORE user
-        (tg_id, user_name, first_name, last_name, can_download, is_admin)
-        VALUES ($1, $2, $3, $4, $5, $6);")
-        .bind(user.id.0 as i64)
-        .bind(&user.username)
-        .bind(&user.first_name)
-        .bind(&user.last_name)
-        .bind(0)
-        .bind(0)
-        .execute(&db).await.expect("insert");
 
-    let db_user = sqlx::query_as!(DbUser, 
-        "SELECT * FROM user WHERE id = 1 LIMIT 1;")
-        .fetch_one(&db).await.expect("fetch_one");
+    sqlx::query(
+        "INSERT OR IGNORE INTO user
+        (tg_id, username, first_name, last_name, can_download, is_admin)
+        VALUES ($1, $2, $3, $4, $5, $6);",
+    )
+    .bind(user.id.0 as i64)
+    .bind(&user.username)
+    .bind(&user.first_name)
+    .bind(&user.last_name)
+    .bind(0)
+    .bind(0)
+    .execute(&db)
+    .await
+    .expect("insert");
+
+    let db_user = sqlx::query_as!(DbUser, "SELECT * FROM user WHERE id = 1 LIMIT 1;")
+        .fetch_one(&db)
+        .await
+        .expect("fetch_one");
     dbg!(db_user);
     Ok(())
 }
