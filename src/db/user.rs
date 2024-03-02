@@ -19,12 +19,12 @@ pub async fn create_user(
     .bind(&user.last_name)
     .bind(can_download as i64)
     .bind(is_admin as i64)
-    .execute(db.as_ref())
+    .execute(db)
     .await?;
 
     let user: User = sqlx::query_as("SELECT * FROM user WHERE tg_id = $1 LIMIT 1;")
         .bind(user.id.0 as i64)
-        .fetch_one(db.as_ref())
+        .fetch_one(db)
         .await?;
     Ok(user)
 }
@@ -33,7 +33,7 @@ pub async fn find_or_create_user(db: &DbPool, user: &types::User) -> Result<User
     let res: Result<User, sqlx::Error> =
         sqlx::query_as("SELECT * FROM user WHERE tg_id = $1 LIMIT 1;")
             .bind(user.id.0 as i64)
-            .fetch_one(db.as_ref())
+            .fetch_one(db)
             .await;
 
     match res {

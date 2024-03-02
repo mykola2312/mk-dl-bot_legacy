@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use super::util::make_database_url;
 
-pub type DbPool = Arc<SqlitePool>;
+pub type DbPool = SqlitePool;
 
 #[derive(sqlx::FromRow)]
 pub struct User {
