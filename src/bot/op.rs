@@ -8,7 +8,7 @@ use crate::db::DbPool;
 
 pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
     let admins: i64 = sqlx::query("SELECT COUNT(*) FROM user WHERE is_admin = 1")
-        .fetch_one(db.as_ref())
+        .fetch_one(&db)
         .await?
         .get(0);
 
@@ -30,7 +30,7 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
                     let target = find_or_create_user(&db, target).await?;
                     sqlx::query("UPDATE user SET can_download = 1, is_admin = 1 WHERE id = $1;")
                         .bind(target.id)
-                        .execute(db.as_ref())
+                        .execute(&db)
                         .await?;
 
                     event!(

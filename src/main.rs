@@ -22,6 +22,6 @@ async fn main() -> anyhow::Result<()> {
     log_init();
     let db = db_init().await;
 
-    bot_main(Arc::from(db)).await?;
+    bot_main(db).await?;
     Ok(())
 }
