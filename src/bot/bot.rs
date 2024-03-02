@@ -9,9 +9,11 @@ use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
 
-use super::dl::cmd_download;
 use super::types::*;
 use crate::db::DbPool;
+
+use super::dl::cmd_download;
+use super::op::cmd_op;
 
 fn parse_env<T>(name: &str) -> T
 where
@@ -54,7 +56,8 @@ fn schema() -> UpdateHandler<HandlerErr> {
 
     let command_handler = teloxide::filter_command::<Command, _>()
         .branch(case![Command::Test].endpoint(cmd_test))
-        .branch(case![Command::Download(url)].endpoint(cmd_download));
+        .branch(case![Command::Download(url)].endpoint(cmd_download))
+        .branch(case![Command::OP].endpoint(cmd_op));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -71,6 +74,9 @@ enum Command {
 
     #[command(alias = "dl")]
     Download(String),
+
+    #[command(alias = "op")]
+    OP
 }
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
