@@ -4,8 +4,10 @@ use std::env;
 use std::fmt;
 use std::str;
 use std::str::FromStr;
+use std::sync::Arc;
 use std::time::Duration;
 use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
+use teloxide::types::Recipient;
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
 
@@ -28,7 +30,7 @@ where
     .expect(format!("env '{}' parse error", name).as_str())
 }
 
-pub async fn bot_main(db: SqlitePool) -> anyhow::Result<()> {
+pub async fn bot_main(db: DbPool) -> anyhow::Result<()> {
     event!(Level::INFO, "start");
 
     let bot = Bot::new(env::var("BOT_TOKEN")?);
@@ -76,7 +78,7 @@ enum Command {
     Download(String),
 
     #[command(alias = "op")]
-    OP
+    OP,
 }
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
