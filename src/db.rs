@@ -1,9 +1,10 @@
 use sqlx::migrate::MigrateDatabase;
 use sqlx::{Sqlite, SqlitePool};
+use std::sync::Arc;
 
 use super::util::make_database_url;
 
-pub type DbPool = SqlitePool;
+pub type DbPool = Arc<SqlitePool>;
 
 #[derive(sqlx::FromRow)]
 pub struct User {
@@ -14,6 +15,12 @@ pub struct User {
     pub last_name: Option<String>,
     pub can_download: i64,
     pub is_admin: i64,
+}
+
+impl User {
+    pub fn username_or_name(&self) -> &String {
+        self.username.as_ref().unwrap_or(&self.first_name)
+    }
 }
 
 pub mod user;
