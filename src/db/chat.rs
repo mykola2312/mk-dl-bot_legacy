@@ -17,15 +17,17 @@ pub async fn create_chat(db: &DbPool, chat: &types::Chat) -> Result<Chat, sqlx::
 
     let chat: Chat = sqlx::query_as("SELECT * FROM chat WHERE tg_id = $1 LIMIT 1;")
         .bind(chat.id.0 as i64)
-        .fetch_one(db).await?;
+        .fetch_one(db)
+        .await?;
     Ok(chat)
 }
 
 pub async fn find_or_create_chat(db: &DbPool, chat: &types::Chat) -> Result<Chat, sqlx::Error> {
-    let res: Result<Chat, sqlx::Error> = sqlx::query_as(
-        "SELECT * FROM chat WHERE tg_id = $1 LIMIT 1;")
-        .bind(chat.id.0 as i64)
-        .fetch_one(db).await;
+    let res: Result<Chat, sqlx::Error> =
+        sqlx::query_as("SELECT * FROM chat WHERE tg_id = $1 LIMIT 1;")
+            .bind(chat.id.0 as i64)
+            .fetch_one(db)
+            .await;
 
     unwrap_or_create!(db, chat, res, create_chat)
 }

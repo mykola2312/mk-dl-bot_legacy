@@ -1,15 +1,16 @@
 use anyhow;
 use rust_i18n::t;
-use teloxide::types::UpdateKind;
 use std::env;
 use std::fmt;
 use std::str;
 use std::str::FromStr;
 use std::time::Duration;
 use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
+use teloxide::types::{Me, MessageKind, MessageNewChatMembers, UpdateKind};
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
 
+use super::start::handle_new_chat_member;
 use super::types::*;
 use crate::db::DbPool;
 
@@ -74,7 +75,27 @@ fn schema() -> UpdateHandler<HandlerErr> {
 async fn handle_update(_bot: Bot, upd: Update, db: DbPool) -> HandlerResult {
     match upd.kind {
         UpdateKind::MyChatMember(upd) => handle_my_chat_member(db, upd).await,
-        _ => event!(Level::WARN, "unhandled update {:?}", upd)
+        _ => event!(Level::WARN, "unhandled update {:?}", upd),
+    }
+
+    Ok(())
+}
+
+async fn handle_message(
+    bot: Bot,
+    _dialogue: MyDialogue,
+    msg: Message,
+    db: DbPool,
+    me: Me,
+) -> HandlerResult {
+    match msg.kind {
+        MessageKind::NewChatMembers(MessageNewChatMembers { new_chat_members }) => {
+            handle_new_chat_member(bot, &msg.chat, new_chat_members, db, me).await?
+        },
+        MessageKind::Common(_) => (),
+        _ => {
+            dbg!(msg);
+        }
     }
 
     Ok(())
@@ -99,10 +120,5 @@ async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
     bot.send_message(msg.chat.id, t!("test_response")).await?;
     dbg!(msg);
 
-    Ok(())
-}
-
-async fn handle_message(_bot: Bot, _dialogue: MyDialogue, _msg: Message) -> HandlerResult {
-    dbg!(_msg);
     Ok(())
 }
