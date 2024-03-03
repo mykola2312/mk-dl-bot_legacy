@@ -91,7 +91,7 @@ async fn handle_message(
     match msg.kind {
         MessageKind::NewChatMembers(MessageNewChatMembers { new_chat_members }) => {
             handle_new_chat_member(bot, &msg.chat, new_chat_members, db, me).await?
-        },
+        }
         MessageKind::Common(_) => (),
         _ => {
             dbg!(msg);
