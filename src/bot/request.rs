@@ -52,5 +52,5 @@ pub async fn cmd_request(bot: Bot, msg: Message, text: String, db: DbPool) -> Ha
         bot.send_message(msg.chat.id, t!("request_added")).await?;
     }
 
-    todo!()
+    Ok(())
 }

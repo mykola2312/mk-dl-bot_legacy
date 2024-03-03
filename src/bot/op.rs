@@ -4,7 +4,7 @@ use teloxide::prelude::*;
 use tracing::{event, Level};
 
 use super::types::HandlerResult;
-use crate::db::user::{create_user, find_or_create_user};
+use crate::db::user::find_or_create_user;
 use crate::db::DbPool;
 
 pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
@@ -15,7 +15,10 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
 
     if let Some(tg_user) = msg.from() {
         if admins == 0 {
-            let user = create_user(&db, tg_user, true, true).await?;
+            let user = find_or_create_user(&db, tg_user).await?;
+            sqlx::query("UPDATE user SET can_download = 1 AND is_admin = 1 WHERE id = $1;")
+                .bind(user.id)
+                .execute(&db).await?;
 
             event!(
                 Level::INFO,

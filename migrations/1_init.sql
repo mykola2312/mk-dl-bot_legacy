@@ -10,6 +10,9 @@ CREATE TABLE "user"
     has_private_chat    INTEGER NOT NULL
 );
 
+CREATE INDEX idx_user_tg_id
+    ON "user"(tg_id);
+
 CREATE TABLE "chat"
 (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,6 +21,9 @@ CREATE TABLE "chat"
     username            TEXT,
     can_download        INTEGER NOT NULL
 );
+
+CREATE INDEX idx_chat_tg_id
+    ON "chat"(tg_id);
 
 CREATE TABLE "link"
 (
