@@ -1,7 +1,7 @@
+use rust_i18n::t;
 use sqlx::Row;
 use teloxide::prelude::*;
 use tracing::{event, Level};
-use rust_i18n::t;
 
 use super::types::HandlerResult;
 use crate::db::user::{create_user, find_or_create_user};
@@ -37,12 +37,10 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
                     event!(Level::INFO, "opped {}", target);
                     bot.send_message(msg.chat.id, "opped").await?;
                 } else {
-                    bot.send_message(msg.chat.id, t!("has_to_reply"))
-                        .await?;
+                    bot.send_message(msg.chat.id, t!("has_to_reply")).await?;
                 }
             } else {
-                bot.send_message(msg.chat.id, t!("cant_do_that"))
-                    .await?;
+                bot.send_message(msg.chat.id, t!("cant_do_that")).await?;
             }
         }
     }

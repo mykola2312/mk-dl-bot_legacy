@@ -41,6 +41,18 @@ pub struct Chat {
     pub can_download: i64,
 }
 
+impl fmt::Display for Chat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} - {}", self.tg_id, self.username_or_title())
+    }
+}
+
+impl Chat {
+    pub fn username_or_title(&self) -> &String {
+        self.username.as_ref().unwrap_or(&self.title)
+    }
+}
+
 pub mod chat;
 
 #[derive(sqlx::FromRow)]
