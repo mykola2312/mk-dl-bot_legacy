@@ -1,6 +1,6 @@
 use rust_i18n::t;
 use sqlx::Row;
-use teloxide::prelude::*;
+use teloxide::{prelude::*, requests};
 use tracing::{event, Level};
 
 use super::notify::notify_admins;
@@ -48,7 +48,7 @@ pub async fn cmd_request(bot: Bot, msg: Message, text: String, db: DbPool) -> Ha
             t!("admin_notify_request", user = user.to_string()).to_string(),
         )
         .await?;
-        
+
         bot.send_message(msg.chat.id, t!("request_added")).await?;
     }
 
@@ -60,7 +60,7 @@ struct RequestWithUser {
     pub request_id: i64,
     pub message: String,
     #[sqlx(flatten)]
-    pub user: User
+    pub user: User,
 }
 
 pub async fn cmd_listrequests(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
@@ -70,13 +70,25 @@ pub async fn cmd_listrequests(bot: Bot, msg: Message, db: DbPool) -> HandlerResu
             reply_i18n_and_return!(bot, msg.chat.id, "not_an_admin");
         }
 
-        let mut list = String::new();
         let requests: Vec<RequestWithUser> = sqlx::query_as(
-        "SELECT request.id AS request_id, request.message, user.*FROM request
+            "SELECT request.id AS request_id, request.message, user.*
+            FROM request
             INNER JOIN user	ON request.requested_by = user.id
-            WHERE request.is_approved = 0;")
-            .fetch_all(&db).await?;
-        dbg!(requests);
+            WHERE request.is_approved = 0;",
+        )
+        .fetch_all(&db)
+        .await?;
+        
+        let mut list = String::new();
+        list.push_str(t!("request_list_header").to_string().as_str());
+        for request in requests {
+            let fmt = format!(
+                "{}: {}: {}\n",
+                request.request_id, request.user, request.message
+            );
+            list.push_str(fmt.as_str());
+        }
+        bot.send_message(msg.chat.id, list).await?;
     }
 
     Ok(())

@@ -11,3 +11,4 @@ already_has_requested: "Stop spamming requests. That ain't gonna grant ya the do
 request_added: "Your requested has been added. Admins have been notifed. You should DM bot with /start to enable personal notifications"
 admin_notify_request: "User %{user} awaits request approval"
 not_an_admin: "You are not an admin. Back off"
+request_list_header: "Current user requests for downloading:\n"
