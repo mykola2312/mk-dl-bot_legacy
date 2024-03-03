@@ -3,6 +3,7 @@ pub mod dl;
 pub mod notify;
 pub mod op;
 pub mod request;
+pub mod request_chat;
 pub mod sanitize;
 pub mod start;
 pub mod types;

@@ -17,6 +17,7 @@ use crate::db::DbPool;
 use super::dl::cmd_download;
 use super::op::cmd_op;
 use super::request::{cmd_listrequests, cmd_request, cmd_approve, cmd_decline};
+use super::request_chat::{cmd_listrequests_chat, cmd_request_chat, cmd_approve_chat, cmd_decline_chat};
 use super::start::{cmd_start, handle_my_chat_member};
 
 fn parse_env<T>(name: &str) -> T
@@ -66,7 +67,11 @@ fn schema() -> UpdateHandler<HandlerErr> {
         .branch(case![Command::Request(text)].endpoint(cmd_request))
         .branch(case![Command::ListRequests].endpoint(cmd_listrequests))
         .branch(case![Command::Approve(text)].endpoint(cmd_approve))
-        .branch(case![Command::Decline(text)].endpoint(cmd_decline));
+        .branch(case![Command::Decline(text)].endpoint(cmd_decline))
+        .branch(case![Command::RequestChat(text)].endpoint(cmd_request_chat))
+        .branch(case![Command::ListRequestsChat].endpoint(cmd_listrequests_chat))
+        .branch(case![Command::ApproveChat(text)].endpoint(cmd_approve_chat))
+        .branch(case![Command::DeclineChat(text)].endpoint(cmd_decline_chat));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -116,6 +121,7 @@ enum Command {
     Download(String),
     #[command(alias = "op")]
     OP,
+    
     #[command(alias = "request")]
     Request(String),
     #[command(alias = "listrequests")]
@@ -124,6 +130,15 @@ enum Command {
     Approve(String),
     #[command(alias = "decline")]
     Decline(String),
+
+    #[command(alias = "request_chat")]
+    RequestChat(String),
+    #[command(alias = "listrequests_chat")]
+    ListRequestsChat,
+    #[command(alias = "approve_chat")]
+    ApproveChat(String),
+    #[command(alias = "decline_chat")]
+    DeclineChat(String),
 }
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
