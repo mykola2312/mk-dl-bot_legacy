@@ -8,3 +8,5 @@ request_text_is_too_short: "Fuck off unless you write meaningful request message
 request_text_is_too_long: "I ain't reading allat"
 already_can_download: "You already have permission to download, no need to request it then"
 already_has_requested: "Stop spamming requests. That ain't gonna grant ya the download perm"
+request_added: "Your requested has been added. Admins have been notifed"
+admin_notify_request: "User %{user} awaits request approval"
