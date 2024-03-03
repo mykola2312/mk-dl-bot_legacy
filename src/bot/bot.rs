@@ -12,12 +12,11 @@ use tracing::{event, Level};
 
 use super::start::handle_new_chat_member;
 use super::types::*;
-use crate::bot::notify::notify_admins;
 use crate::db::DbPool;
 
 use super::dl::cmd_download;
 use super::op::cmd_op;
-use super::request::{cmd_listrequests, cmd_request};
+use super::request::{cmd_listrequests, cmd_request, cmd_approve, cmd_decline};
 use super::start::{cmd_start, handle_my_chat_member};
 
 fn parse_env<T>(name: &str) -> T
@@ -65,7 +64,9 @@ fn schema() -> UpdateHandler<HandlerErr> {
         .branch(case![Command::Download(url)].endpoint(cmd_download))
         .branch(case![Command::OP].endpoint(cmd_op))
         .branch(case![Command::Request(text)].endpoint(cmd_request))
-        .branch(case![Command::ListRequests].endpoint(cmd_listrequests));
+        .branch(case![Command::ListRequests].endpoint(cmd_listrequests))
+        .branch(case![Command::Approve(text)].endpoint(cmd_approve))
+        .branch(case![Command::Decline(text)].endpoint(cmd_decline));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -109,21 +110,20 @@ async fn handle_message(
 #[command(rename_rule = "lowercase")]
 enum Command {
     Test,
-
     #[command(alias = "start")]
     Start,
-
     #[command(alias = "dl")]
     Download(String),
-
     #[command(alias = "op")]
     OP,
-
     #[command(alias = "request")]
     Request(String),
-
     #[command(alias = "listrequests")]
     ListRequests,
+    #[command(alias = "approve")]
+    Approve(String),
+    #[command(alias = "decline")]
+    Decline(String),
 }
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {

@@ -1,14 +1,14 @@
 use rust_i18n::t;
 use sqlx::Row;
-use teloxide::{prelude::*, requests};
+use teloxide::types::Recipient;
+use teloxide::prelude::*;
 use tracing::{event, Level};
 
 use super::notify::notify_admins;
 use super::types::HandlerResult;
-use crate::db::chat::find_or_create_chat;
 use crate::db::user::find_or_create_user;
 use crate::db::{DbPool, User};
-use crate::reply_i18n_and_return;
+use crate::{parse_integer, reply_i18n_and_return};
 
 pub async fn cmd_request(bot: Bot, msg: Message, text: String, db: DbPool) -> HandlerResult {
     if text.len() < 16 {
@@ -78,7 +78,7 @@ pub async fn cmd_listrequests(bot: Bot, msg: Message, db: DbPool) -> HandlerResu
         )
         .fetch_all(&db)
         .await?;
-        
+
         let mut list = String::new();
         list.push_str(t!("request_list_header").to_string().as_str());
         for request in requests {
@@ -89,6 +89,126 @@ pub async fn cmd_listrequests(bot: Bot, msg: Message, db: DbPool) -> HandlerResu
             list.push_str(fmt.as_str());
         }
         bot.send_message(msg.chat.id, list).await?;
+    }
+
+    Ok(())
+}
+
+pub async fn cmd_approve(bot: Bot, msg: Message, id: String, db: DbPool) -> HandlerResult {
+    let id: i64 = parse_integer!(bot, msg.chat.id, id);
+
+    if let Some(user) = msg.from() {
+        let user = find_or_create_user(&db, user).await?;
+        if user.is_admin != 1 {
+            reply_i18n_and_return!(bot, msg.chat.id, "not_an_admin");
+        }
+
+        // get request
+        let res: Result<RequestWithUser, sqlx::Error> = sqlx::query_as(
+            "SELECT request.id AS request_id, request.message, user.*
+                FROM request
+                INNER JOIN user	ON request.requested_by = user.id
+                WHERE request_id = $1 AND request.is_approved = 0
+                LIMIT 1;",
+        )
+        .bind(id)
+        .fetch_one(&db)
+        .await;
+        let request = match res {
+            Ok(request) => request,
+            Err(e) => match e {
+                sqlx::Error::RowNotFound => {
+                    bot.send_message(msg.chat.id, t!("request_not_found"))
+                        .await?;
+                    return Ok(());
+                }
+                _ => return Err(Box::new(e)),
+            },
+        };
+
+        // approve request
+        sqlx::query("UPDATE request SET approved_by = $1, is_approved = 1 WHERE id = $2;")
+            .bind(user.id)
+            .bind(request.request_id)
+            .execute(&db)
+            .await?;
+        event!(
+            Level::INFO,
+            "approved request {} by {} for {}",
+            request.request_id,
+            user,
+            request.user
+        );
+        bot.send_message(msg.chat.id, t!("request_approved"))
+            .await?;
+
+        // notify target user
+        if request.user.has_private_chat == 1 {
+            bot.send_message(
+                Recipient::Id(ChatId(request.user.tg_id)),
+                t!("your_request_approved"),
+            )
+            .await?;
+        }
+    }
+
+    Ok(())
+}
+
+pub async fn cmd_decline(bot: Bot, msg: Message, id: String, db: DbPool) -> HandlerResult {
+    let id: i64 = parse_integer!(bot, msg.chat.id, id);
+
+    if let Some(user) = msg.from() {
+        let user = find_or_create_user(&db, user).await?;
+        if user.is_admin != 1 {
+            reply_i18n_and_return!(bot, msg.chat.id, "not_an_admin");
+        }
+
+        // get request
+        let res: Result<RequestWithUser, sqlx::Error> = sqlx::query_as(
+            "SELECT request.id AS request_id, request.message, user.*
+                FROM request
+                INNER JOIN user	ON request.requested_by = user.id
+                WHERE request_id = $1 AND request.is_approved = 0
+                LIMIT 1;",
+        )
+        .bind(id)
+        .fetch_one(&db)
+        .await;
+        let request = match res {
+            Ok(request) => request,
+            Err(e) => match e {
+                sqlx::Error::RowNotFound => {
+                    bot.send_message(msg.chat.id, t!("request_not_found"))
+                        .await?;
+                    return Ok(());
+                }
+                _ => return Err(Box::new(e)),
+            },
+        };
+
+        // decline request
+        sqlx::query("DELETE FROM request WHERE id = $1;")
+            .bind(request.request_id)
+            .execute(&db).await?;
+        event!(
+            Level::INFO,
+            "declined request {} by {} for {}",
+            request.request_id,
+            user,
+            request.user
+        );
+        bot.send_message(msg.chat.id, t!("request_declined"))
+            .await?;
+
+        // notify target user
+        if request.user.has_private_chat == 1 {
+            bot.send_message(
+                Recipient::Id(ChatId(request.user.tg_id)),
+                t!("your_request_declined"),
+            )
+            .await?;
+        }
     }
 
     Ok(())
