@@ -18,7 +18,7 @@ use crate::db::DbPool;
 use super::dl::cmd_download;
 use super::op::cmd_op;
 use super::start::{cmd_start, handle_my_chat_member};
-use super::request::cmd_request;
+use super::request::{cmd_request, cmd_listrequests};
 
 fn parse_env<T>(name: &str) -> T
 where
@@ -64,7 +64,8 @@ fn schema() -> UpdateHandler<HandlerErr> {
         .branch(case![Command::Start].endpoint(cmd_start))
         .branch(case![Command::Download(url)].endpoint(cmd_download))
         .branch(case![Command::OP].endpoint(cmd_op))
-        .branch(case![Command::Request(text)].endpoint(cmd_request));
+        .branch(case![Command::Request(text)].endpoint(cmd_request))
+        .branch(case![Command::ListRequests].endpoint(cmd_listrequests));
 
     let message_handler = Update::filter_message().branch(command_handler);
     let raw_message_handler = Update::filter_message().branch(dptree::endpoint(handle_message));
@@ -119,7 +120,10 @@ enum Command {
     OP,
 
     #[command(alias = "request")]
-    Request(String)
+    Request(String),
+
+    #[command(alias = "listrequests")]
+    ListRequests
 }
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
