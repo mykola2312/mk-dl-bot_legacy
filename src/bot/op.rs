@@ -16,7 +16,7 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
     if let Some(tg_user) = msg.from() {
         if admins == 0 {
             let user = find_or_create_user(&db, tg_user).await?;
-            sqlx::query("UPDATE user SET can_download = 1 AND is_admin = 1 WHERE id = $1;")
+            sqlx::query("UPDATE user SET can_download = 1, is_admin = 1 WHERE id = $1;")
                 .bind(user.id)
                 .execute(&db).await?;
 
