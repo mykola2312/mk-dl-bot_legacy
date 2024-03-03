@@ -7,7 +7,7 @@ use super::notify::notify_admins;
 use super::types::HandlerResult;
 use crate::db::chat::find_or_create_chat;
 use crate::db::user::find_or_create_user;
-use crate::db::DbPool;
+use crate::db::{DbPool, User};
 use crate::reply_i18n_and_return;
 
 pub async fn cmd_request(bot: Bot, msg: Message, text: String, db: DbPool) -> HandlerResult {
@@ -50,6 +50,33 @@ pub async fn cmd_request(bot: Bot, msg: Message, text: String, db: DbPool) -> Ha
         .await?;
         
         bot.send_message(msg.chat.id, t!("request_added")).await?;
+    }
+
+    Ok(())
+}
+
+#[derive(sqlx::FromRow, Debug)]
+struct RequestWithUser {
+    pub request_id: i64,
+    pub message: String,
+    #[sqlx(flatten)]
+    pub user: User
+}
+
+pub async fn cmd_listrequests(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
+    if let Some(user) = msg.from() {
+        let user = find_or_create_user(&db, user).await?;
+        if user.is_admin != 1 {
+            reply_i18n_and_return!(bot, msg.chat.id, "not_an_admin");
+        }
+
+        let mut list = String::new();
+        let requests: Vec<RequestWithUser> = sqlx::query_as(
+        "SELECT request.id AS request_id, request.message, user.*FROM request
+            INNER JOIN user	ON request.requested_by = user.id
+            WHERE request.is_approved = 0;")
+            .fetch_all(&db).await?;
+        dbg!(requests);
     }
 
     Ok(())
