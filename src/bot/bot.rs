@@ -12,6 +12,7 @@ use tracing::{event, Level};
 
 use super::start::handle_new_chat_member;
 use super::types::*;
+use crate::bot::notify::notify_admins;
 use crate::db::DbPool;
 
 use super::dl::cmd_download;
