@@ -17,8 +17,8 @@ use crate::db::DbPool;
 
 use super::dl::cmd_download;
 use super::op::cmd_op;
+use super::request::{cmd_listrequests, cmd_request};
 use super::start::{cmd_start, handle_my_chat_member};
-use super::request::{cmd_request, cmd_listrequests};
 
 fn parse_env<T>(name: &str) -> T
 where
@@ -123,7 +123,7 @@ enum Command {
     Request(String),
 
     #[command(alias = "listrequests")]
-    ListRequests
+    ListRequests,
 }
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
