@@ -6,7 +6,7 @@ use super::util::make_database_url;
 
 pub type DbPool = SqlitePool;
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct User {
     pub id: i64,
     pub tg_id: i64,
@@ -32,7 +32,7 @@ impl User {
 
 pub mod user;
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct Chat {
     pub id: i64,
     pub tg_id: i64,
@@ -55,7 +55,7 @@ impl Chat {
 
 pub mod chat;
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct Link {
     pub id: i64,
     pub domain: String,
@@ -64,22 +64,22 @@ pub struct Link {
     pub auto_download: i64,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct Request {
     pub id: i64,
     pub requested_by: i64,
     pub approved_by: Option<i64>,
-    pub message: Option<String>,
+    pub message: String,
     pub is_approved: i64,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct RequestChat {
     pub id: i64,
     pub requested_by: i64,
     pub requested_for: i64,
     pub approved_by: Option<i64>,
-    pub message: Option<String>,
+    pub message: String,
     pub is_approved: i64,
 }
 
