@@ -73,6 +73,16 @@ pub struct Request {
     pub is_approved: i64,
 }
 
+#[derive(sqlx::FromRow)]
+pub struct RequestChat {
+    pub id: i64,
+    pub requested_by: i64,
+    pub requested_for: i64,
+    pub approved_by: Option<i64>,
+    pub message: Option<String>,
+    pub is_approved: i64,
+}
+
 pub async fn db_init() -> SqlitePool {
     let db_url = make_database_url();
     if !Sqlite::database_exists(&db_url).await.unwrap_or(false) {
