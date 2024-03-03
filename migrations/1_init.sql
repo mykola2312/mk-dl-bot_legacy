@@ -42,7 +42,7 @@ CREATE TABLE "request"
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
     requested_by        INTEGER NOT NULL UNIQUE,
     approved_by         INTEGER UNIQUE,
-    message             TEXT,
+    message             TEXT    NOT NULL,
     is_approved         INTEGER NOT NULL,
 
     FOREIGN KEY(requested_by)   REFERENCES "user"(id),
@@ -62,7 +62,7 @@ CREATE TABLE "request_chat"
     requested_by        INTEGER NOT NULL UNIQUE,
     requested_for       INTEGER NOT NULL UNIQUE,
     approved_by         INTEGER UNIQUE,
-    message             TEXT,
+    message             TEXT    NOT NULL,
     is_approved         INTEGER NOT NULL,
 
     FOREIGN KEY(requested_by)   REFERENCES "user"(id),
