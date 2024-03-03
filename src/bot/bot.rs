@@ -1,4 +1,6 @@
 use anyhow;
+use rust_i18n::t;
+use teloxide::types::UpdateKind;
 use std::env;
 use std::fmt;
 use std::str;
@@ -7,14 +9,13 @@ use std::time::Duration;
 use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
-use rust_i18n::t;
 
 use super::types::*;
 use crate::db::DbPool;
 
-use super::start::cmd_start;
 use super::dl::cmd_download;
 use super::op::cmd_op;
+use super::start::{cmd_start, handle_my_chat_member};
 
 fn parse_env<T>(name: &str) -> T
 where
@@ -67,6 +68,16 @@ fn schema() -> UpdateHandler<HandlerErr> {
     dialogue::enter::<Update, InMemStorage<()>, (), _>()
         .branch(message_handler)
         .branch(raw_message_handler)
+        .endpoint(handle_update)
+}
+
+async fn handle_update(_bot: Bot, upd: Update, db: DbPool) -> HandlerResult {
+    match upd.kind {
+        UpdateKind::MyChatMember(upd) => handle_my_chat_member(db, upd).await,
+        _ => event!(Level::WARN, "unhandled update {:?}", upd)
+    }
+
+    Ok(())
 }
 
 #[derive(BotCommands, Clone)]
