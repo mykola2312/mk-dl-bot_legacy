@@ -17,7 +17,7 @@ macro_rules! reply_i18n_and_return {
 
 #[macro_export]
 macro_rules! parse_integer {
-    ($bot:expr, $chat_id:expr, $integer:expr, $out:expr) => {{
+    ($bot:expr, $chat_id:expr, $integer:expr) => {{
         let out: i64 = match $integer.parse() {
             Ok(integer) => integer,
             Err(_) => {
