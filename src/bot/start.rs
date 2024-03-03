@@ -1,6 +1,6 @@
 use rust_i18n::t;
 use teloxide::prelude::*;
-use teloxide::types::{Me, MessageNewChatMembers};
+use teloxide::types::Me;
 use tracing::{event, Level};
 
 use super::types::HandlerResult;
@@ -25,6 +25,15 @@ pub async fn cmd_start(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
             bot.send_message(msg.chat.id, t!("started_private_chat"))
                 .await?;
         }
+    } else if msg.chat.is_channel()
+        || msg.chat.is_chat()
+        || msg.chat.is_group()
+        || msg.chat.is_supergroup()
+    {
+        let chat = find_or_create_chat(&db, &msg.chat).await?;
+        event!(Level::INFO, "started public chat {}", chat);
+        bot.send_message(msg.chat.id, t!("started_public_chat"))
+            .await?;
     }
     Ok(())
 }
