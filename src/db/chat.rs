@@ -11,7 +11,7 @@ pub async fn create_chat(db: &DbPool, chat: &types::Chat) -> Result<Chat, sqlx::
     .bind(chat.id.0 as i64)
     .bind(chat.title())
     .bind(chat.username())
-    .bind(0)
+    .bind(false)
     .execute(db)
     .await?;
 
