@@ -1,7 +1,7 @@
 use rust_i18n::t;
 use sqlx::Row;
-use teloxide::types::Recipient;
 use teloxide::prelude::*;
+use teloxide::types::Recipient;
 use tracing::{event, Level};
 
 use super::notify::notify_admins;
@@ -190,7 +190,8 @@ pub async fn cmd_decline(bot: Bot, msg: Message, id: String, db: DbPool) -> Hand
         // decline request
         sqlx::query("DELETE FROM request WHERE id = $1;")
             .bind(request.request_id)
-            .execute(&db).await?;
+            .execute(&db)
+            .await?;
         event!(
             Level::INFO,
             "declined request {} by {} for {}",

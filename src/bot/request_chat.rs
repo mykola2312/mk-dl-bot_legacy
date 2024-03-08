@@ -1,14 +1,14 @@
 use rust_i18n::t;
 use sqlx::Row;
-use teloxide::types::Recipient;
 use teloxide::prelude::*;
+use teloxide::types::Recipient;
 use tracing::{event, Level};
 
 use super::notify::notify_admins;
 use super::types::HandlerResult;
-use crate::db::user::find_or_create_user;
 use crate::db::chat::find_or_create_chat;
-use crate::db::{DbPool, Chat};
+use crate::db::user::find_or_create_user;
+use crate::db::{Chat, DbPool};
 use crate::{parse_integer, reply_i18n_and_return};
 
 pub async fn cmd_request_chat(bot: Bot, msg: Message, text: String, db: DbPool) -> HandlerResult {
@@ -26,11 +26,12 @@ pub async fn cmd_request_chat(bot: Bot, msg: Message, text: String, db: DbPool) 
             reply_i18n_and_return!(bot, msg.chat.id, "chat_already_can_download");
         }
 
-        let requests: i64 = sqlx::query("SELECT COUNT(1) FROM request_chat WHERE requested_for = $1;")
-            .bind(chat.id)
-            .fetch_one(&db)
-            .await?
-            .get(0);
+        let requests: i64 =
+            sqlx::query("SELECT COUNT(1) FROM request_chat WHERE requested_for = $1;")
+                .bind(chat.id)
+                .fetch_one(&db)
+                .await?
+                .get(0);
         if requests > 0 {
             reply_i18n_and_return!(bot, msg.chat.id, "chat_already_has_requested");
         }
@@ -53,7 +54,8 @@ pub async fn cmd_request_chat(bot: Bot, msg: Message, text: String, db: DbPool) 
         )
         .await?;
 
-        bot.send_message(msg.chat.id, t!("chat_request_added")).await?;
+        bot.send_message(msg.chat.id, t!("chat_request_added"))
+            .await?;
     }
 
     Ok(())
@@ -144,7 +146,11 @@ pub async fn cmd_approve_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
             request.chat
         );
         // notify target chat
-        bot.send_message(Recipient::Id(ChatId(request.chat.tg_id)), t!("chat_request_approved")).await?;
+        bot.send_message(
+            Recipient::Id(ChatId(request.chat.tg_id)),
+            t!("chat_request_approved"),
+        )
+        .await?;
     }
 
     Ok(())
@@ -185,7 +191,8 @@ pub async fn cmd_decline_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
         // decline request
         sqlx::query("DELETE FROM request_chat WHERE id = $1;")
             .bind(request.request_id)
-            .execute(&db).await?;
+            .execute(&db)
+            .await?;
         event!(
             Level::INFO,
             "declined request {} by {} for {}",
@@ -197,7 +204,11 @@ pub async fn cmd_decline_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
             .await?;
 
         // notify target chat
-        bot.send_message(Recipient::Id(ChatId(request.chat.tg_id)), t!("chat_request_declined")).await?;
+        bot.send_message(
+            Recipient::Id(ChatId(request.chat.tg_id)),
+            t!("chat_request_declined"),
+        )
+        .await?;
     }
 
     Ok(())
