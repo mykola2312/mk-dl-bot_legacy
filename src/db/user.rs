@@ -10,9 +10,9 @@ pub async fn create_user(
     is_admin: bool,
 ) -> Result<User, sqlx::Error> {
     sqlx::query(
-        "INSERT OR IGNORE INTO user
+        r#"INSERT OR IGNORE INTO "user"
         (tg_id, username, first_name, last_name, can_download, is_admin, has_private_chat)
-        VALUES ($1,$2,$3,$4,$5,$6,$7);",
+        VALUES ($1,$2,$3,$4,$5,$6,$7);"#,
     )
     .bind(user.id.0 as i64)
     .bind(&user.username)
@@ -24,7 +24,7 @@ pub async fn create_user(
     .execute(db)
     .await?;
 
-    let user: User = sqlx::query_as("SELECT * FROM user WHERE tg_id = $1 LIMIT 1;")
+    let user: User = sqlx::query_as(r#"SELECT * FROM "user" WHERE tg_id = $1 LIMIT 1;"#)
         .bind(user.id.0 as i64)
         .fetch_one(db)
         .await?;
@@ -33,7 +33,7 @@ pub async fn create_user(
 
 pub async fn find_or_create_user(db: &DbPool, user: &types::User) -> Result<User, sqlx::Error> {
     let res: Result<User, sqlx::Error> =
-        sqlx::query_as("SELECT * FROM user WHERE tg_id = $1 LIMIT 1;")
+        sqlx::query_as(r#"SELECT * FROM "user" WHERE tg_id = $1 LIMIT 1;"#)
             .bind(user.id.0 as i64)
             .fetch_one(db)
             .await;
