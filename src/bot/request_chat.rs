@@ -110,12 +110,11 @@ pub async fn cmd_approve_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
         }
 
         // get request
-        // BUG: FIX SQL
         let res: Result<RequestChatWithChat, sqlx::Error> = sqlx::query_as(
             r#"SELECT "request_chat".id AS request_id, "request_chat".message, "chat".*
             FROM "request_chat"
             INNER JOIN "chat" ON "request_chat".requested_for = "chat".id
-            WHERE "request_chat".is_approved = false
+            WHERE "request_chat".id = $1 AND "request_chat".is_approved = false
             LIMIT 1;"#,
         )
         .bind(id)
@@ -171,7 +170,7 @@ pub async fn cmd_decline_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
             r#"SELECT "request_chat".id AS request_id, "request_chat".message, "chat".*
             FROM "request_chat"
             INNER JOIN "chat" ON "request_chat".requested_for = "chat".id
-            WHERE "request_chat".is_approved = false
+            WHERE "request_chat".id = $1 AND "request_chat".is_approved = false
             LIMIT 1;"#,
         )
         .bind(id)
