@@ -1,13 +1,13 @@
 CREATE TABLE "user"
 (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    tg_id               INTEGER NOT NULL UNIQUE,
-    username            TEXT    UNIQUE,
-    first_name          TEXT    NOT NULL,
-    last_name           TEXT,
-    can_download        INTEGER NOT NULL,
-    is_admin            INTEGER NOT NULL,
-    has_private_chat    INTEGER NOT NULL
+    id                  SERIAL  PRIMARY KEY,
+    tg_id               BIGINT  NOT NULL UNIQUE,
+    username            VARCHAR UNIQUE,
+    first_name          VARCHAR NOT NULL,
+    last_name           VARCHAR,
+    can_download        BOOLEAN NOT NULL,
+    is_admin            BOOLEAN NOT NULL,
+    has_private_chat    BOOLEAN NOT NULL
 );
 
 CREATE INDEX idx_user_tg_id
@@ -15,11 +15,11 @@ CREATE INDEX idx_user_tg_id
 
 CREATE TABLE "chat"
 (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    tg_id               INTEGER NOT NULL UNIQUE,
-    title               TEXT    NOT NULL,
-    username            TEXT,
-    can_download        INTEGER NOT NULL
+    id                  SERIAL  PRIMARY KEY,
+    tg_id               BIGINT  NOT NULL UNIQUE,
+    title               VARCHAR NOT NULL,
+    username            VARCHAR,
+    can_download        BOOLEAN NOT NULL
 );
 
 CREATE INDEX idx_chat_tg_id
@@ -27,11 +27,11 @@ CREATE INDEX idx_chat_tg_id
 
 CREATE TABLE "link"
 (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    domain              TEXT    NOT NULL UNIQUE,
-    path                TEXT,
-    download_allowed    INTEGER NOT NULL,
-    auto_download       INTEGER NOT NULL
+    id                  SERIAL  PRIMARY KEY,
+    domain              VARCHAR NOT NULL,
+    path                VARCHAR,
+    download_allowed    BOOLEAN NOT NULL,
+    auto_download       BOOLEAN NOT NULL
 );
 
 CREATE INDEX idx_link_domain
@@ -39,40 +39,56 @@ CREATE INDEX idx_link_domain
 
 CREATE TABLE "request"
 (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    id                  SERIAL  PRIMARY KEY,
     requested_by        INTEGER NOT NULL UNIQUE,
     approved_by         INTEGER UNIQUE,
-    message             TEXT    NOT NULL,
-    is_approved         INTEGER NOT NULL,
+    message             VARCHAR NOT NULL,
+    is_approved         BOOLEAN NOT NULL,
 
     FOREIGN KEY(requested_by)   REFERENCES "user"(id),
     FOREIGN KEY(approved_by)    REFERENCES "user"(id)
 );
 
-CREATE TRIGGER "approve"
-AFTER UPDATE OF is_approved ON "request"
-WHEN new.is_approved = 1
+CREATE FUNCTION approve()
+RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE user SET can_download = 1 WHERE user.id = new.requested_by;
+    IF new.is_approved THEN
+        UPDATE "user" SET can_download = TRUE WHERE "user".id = new.requested_by;
+    END IF;
+    RETURN new;
 END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER approve
+AFTER UPDATE OF is_approved ON request
+FOR EACH ROW
+EXECUTE FUNCTION approve();
 
 CREATE TABLE "request_chat"
 (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    id                  SERIAL  PRIMARY KEY,
     requested_by        INTEGER NOT NULL UNIQUE,
     requested_for       INTEGER NOT NULL UNIQUE,
     approved_by         INTEGER UNIQUE,
-    message             TEXT    NOT NULL,
-    is_approved         INTEGER NOT NULL,
+    message             VARCHAR NOT NULL,
+    is_approved         BOOLEAN NOT NULL,
 
     FOREIGN KEY(requested_by)   REFERENCES "user"(id),
     FOREIGN KEY(requested_for)  REFERENCES "chat"(id),
     FOREIGN KEY(approved_by)    REFERENCES "user"(id)
 );
 
-CREATE TRIGGER "approve_chat"
-AFTER UPDATE OF is_approved ON "request_chat"
-WHEN new.is_approved = 1
+CREATE FUNCTION approve_chat()
+RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE chat SET can_download = 1 WHERE chat.id = new.requested_for;
+    IF new.is_approved THEN
+        UPDATE "chat" SET can_download = TRUE WHERE "chat".id = new.requested_for;
+    END IF;
+    RETURN new;
 END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER approve_chat
+AFTER UPDATE OF is_approved ON request_chat
+FOR EACH ROW
+EXECUTE FUNCTION approve_chat();
