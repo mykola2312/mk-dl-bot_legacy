@@ -8,14 +8,14 @@ pub type DbPool = PgPool;
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct User {
-    pub id: i64,
+    pub id: i32,
     pub tg_id: i64,
     pub username: Option<String>,
     pub first_name: String,
     pub last_name: Option<String>,
-    pub can_download: i64,
-    pub is_admin: i64,
-    pub has_private_chat: i64,
+    pub can_download: bool,
+    pub is_admin: bool,
+    pub has_private_chat: bool,
 }
 
 impl fmt::Display for User {
@@ -34,11 +34,11 @@ pub mod user;
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct Chat {
-    pub id: i64,
+    pub id: i32,
     pub tg_id: i64,
     pub username: Option<String>,
     pub title: String,
-    pub can_download: i64,
+    pub can_download: bool,
 }
 
 impl fmt::Display for Chat {
@@ -57,30 +57,30 @@ pub mod chat;
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct Link {
-    pub id: i64,
+    pub id: i32,
     pub domain: String,
     pub path: Option<String>,
-    pub download_allowed: i64,
-    pub auto_download: i64,
+    pub download_allowed: bool,
+    pub auto_download: bool,
 }
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct Request {
-    pub id: i64,
-    pub requested_by: i64,
-    pub approved_by: Option<i64>,
+    pub id: i32,
+    pub requested_by: i32,
+    pub approved_by: Option<i32>,
     pub message: String,
-    pub is_approved: i64,
+    pub is_approved: bool,
 }
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct RequestChat {
-    pub id: i64,
-    pub requested_by: i64,
-    pub requested_for: i64,
-    pub approved_by: Option<i64>,
+    pub id: i32,
+    pub requested_by: i32,
+    pub requested_for: i32,
+    pub approved_by: Option<i32>,
     pub message: String,
-    pub is_approved: i64,
+    pub is_approved: bool,
 }
 
 pub fn make_database_url() -> String {

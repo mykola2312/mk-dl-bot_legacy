@@ -7,7 +7,7 @@ use super::types::HandlerResult;
 
 pub async fn notify_admins(bot: &Bot, db: &DbPool, message: String) -> HandlerResult {
     let admins: Vec<User> =
-        sqlx::query_as("SELECT * FROM user WHERE is_admin = 1 AND has_private_chat = 1;")
+        sqlx::query_as(r#"SELECT * FROM "user" WHERE is_admin = true AND has_private_chat = true;"#)
             .fetch_all(db)
             .await?;
 

@@ -13,6 +13,21 @@ CREATE TABLE "user"
 CREATE INDEX idx_user_tg_id
     ON "user"(tg_id);
 
+CREATE FUNCTION set_admin()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF new.is_admin THEN
+        UPDATE "user" SET can_download = true WHERE "user".id = new.id;
+    END IF;
+    RETURN new;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_admin
+AFTER UPDATE OF is_admin ON "user"
+FOR EACH ROW
+EXECUTE FUNCTION set_admin();
+
 CREATE TABLE "chat"
 (
     id                  SERIAL  PRIMARY KEY,
@@ -34,8 +49,8 @@ CREATE TABLE "link"
     auto_download       BOOLEAN NOT NULL
 );
 
-CREATE INDEX idx_link_domain
-    ON "link"(domain);
+CREATE INDEX idx_link_domain_path
+    ON "link"(domain, path);
 
 CREATE TABLE "request"
 (
@@ -53,7 +68,7 @@ CREATE FUNCTION approve()
 RETURNS TRIGGER AS $$
 BEGIN
     IF new.is_approved THEN
-        UPDATE "user" SET can_download = TRUE WHERE "user".id = new.requested_by;
+        UPDATE "user" SET can_download = true WHERE "user".id = new.requested_by;
     END IF;
     RETURN new;
 END;
@@ -82,7 +97,7 @@ CREATE FUNCTION approve_chat()
 RETURNS TRIGGER AS $$
 BEGIN
     IF new.is_approved THEN
-        UPDATE "chat" SET can_download = TRUE WHERE "chat".id = new.requested_for;
+        UPDATE "chat" SET can_download = true WHERE "chat".id = new.requested_for;
     END IF;
     RETURN new;
 END;
