@@ -5,7 +5,7 @@ use crate::unwrap_or_create;
 
 pub async fn create_user(db: &DbPool, user: &types::User) -> Result<User, sqlx::Error> {
     sqlx::query(
-        r#"INSERT OR IGNORE INTO "user"
+        r#"INSERT INTO "user"
         (tg_id, username, first_name, last_name, can_download, is_admin, has_private_chat)
         VALUES ($1,$2,$3,$4,$5,$6,$7);"#,
     )
