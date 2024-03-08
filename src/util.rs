@@ -1,18 +1,15 @@
-use std::path::Path;
+use std::env;
+use std::fmt;
+use std::str::FromStr;
 
-#[cfg(debug_assertions)]
-pub const VAR_LIB: &str = "target/debug";
+pub fn unwrap_env(name: &str) -> String {
+    env::var(name).expect(format!("env '{}' variable not defined", name).as_str())
+}
 
-#[cfg(not(debug_assertions))]
-pub const VAR_LIB: &str = "/var/lib/mk-dl-bot";
-
-// #[cfg(debug_assertions)]
-// pub const VAR_LOG: &str = "target/debug";
-
-// #[cfg(not(debug_assertions))]
-// pub const VAR_LOG: &str = "/var/log/mk-dl-bot";
-
-pub fn make_database_url() -> String {
-    let path = Path::new(VAR_LIB).join("mk-dl-bot.db");
-    format!("sqlite://{}", path.as_os_str().to_str().unwrap()).to_string()
+pub fn parse_env<T>(name: &str) -> T
+where
+    T: FromStr,
+    T::Err: fmt::Debug,
+{
+    str::parse(unwrap_env(name).as_str()).expect(format!("env '{}' parse error", name).as_str())
 }

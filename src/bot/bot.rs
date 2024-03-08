@@ -1,9 +1,6 @@
 use anyhow;
 use rust_i18n::t;
-use std::env;
-use std::fmt;
 use std::str;
-use std::str::FromStr;
 use std::time::Duration;
 use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
 use teloxide::types::{Me, MessageKind, MessageNewChatMembers, UpdateKind};
@@ -13,30 +10,20 @@ use tracing::{event, Level};
 use super::start::handle_new_chat_member;
 use super::types::*;
 use crate::db::DbPool;
+use crate::util::{unwrap_env, parse_env};
 
 use super::dl::cmd_download;
 use super::op::cmd_op;
-use super::request::{cmd_listrequests, cmd_request, cmd_approve, cmd_decline};
-use super::request_chat::{cmd_listrequests_chat, cmd_request_chat, cmd_approve_chat, cmd_decline_chat};
+use super::request::{cmd_approve, cmd_decline, cmd_listrequests, cmd_request};
+use super::request_chat::{
+    cmd_approve_chat, cmd_decline_chat, cmd_listrequests_chat, cmd_request_chat,
+};
 use super::start::{cmd_start, handle_my_chat_member};
-
-fn parse_env<T>(name: &str) -> T
-where
-    T: FromStr,
-    T::Err: fmt::Debug,
-{
-    str::parse(
-        env::var(name)
-            .expect(format!("env '{}' variable not defined", name).as_str())
-            .as_str(),
-    )
-    .expect(format!("env '{}' parse error", name).as_str())
-}
 
 pub async fn bot_main(db: DbPool) -> anyhow::Result<()> {
     event!(Level::INFO, "start");
 
-    let bot = Bot::new(env::var("BOT_TOKEN")?);
+    let bot = Bot::new(unwrap_env("BOT_TOKEN"));
     let listener = Polling::builder(bot.clone())
         .timeout(Duration::from_secs(parse_env("POLLING_TIMEOUT")))
         .limit(parse_env("POLLING_LIMIT"))
@@ -121,7 +108,7 @@ enum Command {
     Download(String),
     #[command(alias = "op")]
     OP,
-    
+
     #[command(alias = "request")]
     Request(String),
     #[command(alias = "listrequests")]
