@@ -1,10 +1,10 @@
 use sqlx::migrate::MigrateDatabase;
-use sqlx::{Sqlite, SqlitePool};
+use sqlx::{PgPool, Postgres};
 use std::fmt;
 
-use super::util::make_database_url;
+use super::util::unwrap_env;
 
-pub type DbPool = SqlitePool;
+pub type DbPool = PgPool;
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct User {
@@ -83,15 +83,25 @@ pub struct RequestChat {
     pub is_approved: i64,
 }
 
-pub async fn db_init() -> SqlitePool {
+pub fn make_database_url() -> String {
+    format!(
+        "postgres://{}:{}@{}/{}",
+        unwrap_env("POSTGRES_USER"),
+        unwrap_env("POSTGRES_PASSWORD"),
+        unwrap_env("POSTGRES_HOST"),
+        unwrap_env("POSTGRES_DB")
+    )
+}
+
+pub async fn db_init() -> PgPool {
     let db_url = make_database_url();
-    if !Sqlite::database_exists(&db_url).await.unwrap_or(false) {
-        Sqlite::create_database(&db_url)
+    if !Postgres::database_exists(&db_url).await.unwrap_or(false) {
+        Postgres::create_database(&db_url)
             .await
             .expect("failed to create database");
     }
 
-    let db = SqlitePool::connect(&db_url).await.unwrap();
+    let db = PgPool::connect(&db_url).await.unwrap();
     sqlx::migrate!().run(&db).await.unwrap();
 
     db

@@ -22,8 +22,7 @@ macro_rules! parse_integer {
         let out: i64 = match $integer.parse() {
             Ok(integer) => integer,
             Err(_) => {
-                $bot.send_message($chat_id, t!("not_valid_integer"))
-                    .await?;
+                $bot.send_message($chat_id, t!("not_valid_integer")).await?;
                 return Ok(());
             }
         };
