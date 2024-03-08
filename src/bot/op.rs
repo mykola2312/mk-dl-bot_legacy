@@ -8,7 +8,7 @@ use crate::db::user::find_or_create_user;
 use crate::db::DbPool;
 
 pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
-    let admins: i64 = sqlx::query("SELECT COUNT(*) FROM user WHERE is_admin = 1")
+    let admins: i64 = sqlx::query(r#"SELECT COUNT(*) FROM "user" WHERE is_admin = true"#)
         .fetch_one(&db)
         .await?
         .get(0);
@@ -16,7 +16,7 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
     if let Some(tg_user) = msg.from() {
         if admins == 0 {
             let user = find_or_create_user(&db, tg_user).await?;
-            sqlx::query("UPDATE user SET can_download = 1, is_admin = 1 WHERE id = $1;")
+            sqlx::query(r#"UPDATE "user" SET is_admin = true WHERE id = $1;"#)
                 .bind(user.id)
                 .execute(&db)
                 .await?;
@@ -30,10 +30,10 @@ pub async fn cmd_op(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
             bot.send_message(msg.chat.id, t!("op_yourself")).await?;
         } else {
             let user = find_or_create_user(&db, tg_user).await?;
-            if user.is_admin == 1 {
+            if user.is_admin {
                 if let Some(target) = msg.reply_to_message().and_then(|m| m.from()) {
                     let target = find_or_create_user(&db, target).await?;
-                    sqlx::query("UPDATE user SET can_download = 1, is_admin = 1 WHERE id = $1;")
+                    sqlx::query(r#"UPDATE "user" SET is_admin = 1 WHERE id = $1;"#)
                         .bind(target.id)
                         .execute(&db)
                         .await?;

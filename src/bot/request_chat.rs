@@ -22,12 +22,12 @@ pub async fn cmd_request_chat(bot: Bot, msg: Message, text: String, db: DbPool) 
         let user = find_or_create_user(&db, user).await?;
         let chat = find_or_create_chat(&db, &msg.chat).await?;
 
-        if chat.can_download == 1 {
+        if chat.can_download {
             reply_i18n_and_return!(bot, msg.chat.id, "chat_already_can_download");
         }
 
         let requests: i64 =
-            sqlx::query("SELECT COUNT(1) FROM request_chat WHERE requested_for = $1;")
+            sqlx::query(r#"SELECT COUNT(1) FROM "request_chat" WHERE requested_for = $1;"#)
                 .bind(chat.id)
                 .fetch_one(&db)
                 .await?
@@ -37,7 +37,7 @@ pub async fn cmd_request_chat(bot: Bot, msg: Message, text: String, db: DbPool) 
         }
 
         // put the chat request
-        sqlx::query("INSERT INTO request_chat (requested_by,requested_for,message,is_approved) VALUES ($1,$2,$3,$4);")
+        sqlx::query(r#"INSERT INTO "request_chat" (requested_by,requested_for,message,is_approved) VALUES ($1,$2,$3,$4);"#)
             .bind(user.id)
             .bind(chat.id)
             .bind(text)
@@ -63,7 +63,7 @@ pub async fn cmd_request_chat(bot: Bot, msg: Message, text: String, db: DbPool) 
 
 #[derive(sqlx::FromRow, Debug)]
 struct RequestChatWithChat {
-    pub request_id: i64,
+    pub request_id: i32,
     pub message: String,
     #[sqlx(flatten)]
     pub chat: Chat,
@@ -72,15 +72,15 @@ struct RequestChatWithChat {
 pub async fn cmd_listrequests_chat(bot: Bot, msg: Message, db: DbPool) -> HandlerResult {
     if let Some(user) = msg.from() {
         let user = find_or_create_user(&db, user).await?;
-        if user.is_admin != 1 {
+        if !user.is_admin {
             reply_i18n_and_return!(bot, msg.chat.id, "not_an_admin");
         }
 
         let requests: Vec<RequestChatWithChat> = sqlx::query_as(
-            "SELECT request_chat.id AS request_id, request_chat.message, chat.*
-            FROM request_chat
-            INNER JOIN chat	ON request_chat.requested_for = chat.id
-            WHERE request_chat.is_approved = 0;",
+            r#"SELECT "request_chat".id AS request_id, "request_chat".message, "chat".*
+            FROM "request_chat"
+            INNER JOIN "chat" ON "request_chat".requested_for = "chat".id
+            WHERE "request_chat".is_approved = false;"#,
         )
         .fetch_all(&db)
         .await?;
@@ -105,17 +105,17 @@ pub async fn cmd_approve_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
 
     if let Some(user) = msg.from() {
         let user = find_or_create_user(&db, user).await?;
-        if user.is_admin != 1 {
+        if !user.is_admin {
             reply_i18n_and_return!(bot, msg.chat.id, "not_an_admin");
         }
 
         // get request
         let res: Result<RequestChatWithChat, sqlx::Error> = sqlx::query_as(
-            "SELECT request_chat.id AS request_id, request_chat.message, chat.*
-            FROM request_chat
-            INNER JOIN chat	ON request_chat.requested_for = chat.id
-            WHERE request_chat.is_approved = 0
-            LIMIT 1;",
+            r#"SELECT "request_chat".id AS request_id, "request_chat".message, "chat".*
+            FROM "request_chat"
+            INNER JOIN "chat" ON "request_chat".requested_for = "chat".id
+            WHERE "request_chat".is_approved = false
+            LIMIT 1;"#,
         )
         .bind(id)
         .fetch_one(&db)
@@ -133,7 +133,7 @@ pub async fn cmd_approve_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
         };
 
         // approve request
-        sqlx::query("UPDATE request_chat SET approved_by = $1, is_approved = 1 WHERE id = $2;")
+        sqlx::query(r#"UPDATE "request_chat" SET approved_by = $1, is_approved = true WHERE id = $2;"#)
             .bind(user.id)
             .bind(request.request_id)
             .execute(&db)
@@ -161,17 +161,17 @@ pub async fn cmd_decline_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
 
     if let Some(user) = msg.from() {
         let user = find_or_create_user(&db, user).await?;
-        if user.is_admin != 1 {
+        if !user.is_admin {
             reply_i18n_and_return!(bot, msg.chat.id, "not_an_admin");
         }
 
         // get request
         let res: Result<RequestChatWithChat, sqlx::Error> = sqlx::query_as(
-            "SELECT request_chat.id AS request_id, request_chat.message, chat.*
-            FROM request_chat
-            INNER JOIN chat	ON request_chat.requested_for = chat.id
-            WHERE request_chat.is_approved = 0
-            LIMIT 1;",
+            r#"SELECT "request_chat".id AS request_id, "request_chat".message, "chat".*
+            FROM "request_chat"
+            INNER JOIN "chat" ON "request_chat".requested_for = "chat".id
+            WHERE "request_chat".is_approved = false
+            LIMIT 1;"#,
         )
         .bind(id)
         .fetch_one(&db)
@@ -189,7 +189,7 @@ pub async fn cmd_decline_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
         };
 
         // decline request
-        sqlx::query("DELETE FROM request_chat WHERE id = $1;")
+        sqlx::query(r#"DELETE FROM request_chat WHERE id = $1;"#)
             .bind(request.request_id)
             .execute(&db)
             .await?;
