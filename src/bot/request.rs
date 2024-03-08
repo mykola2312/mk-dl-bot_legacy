@@ -36,7 +36,7 @@ pub async fn cmd_request(bot: Bot, msg: Message, text: String, db: DbPool) -> Ha
         sqlx::query(r#"INSERT INTO "request" (requested_by,message,is_approved) VALUES ($1,$2,$3);"#)
             .bind(user.id)
             .bind(text)
-            .bind(0)
+            .bind(false)
             .execute(&db)
             .await?;
         event!(Level::INFO, "added request for {}", user);
@@ -95,7 +95,7 @@ pub async fn cmd_listrequests(bot: Bot, msg: Message, db: DbPool) -> HandlerResu
 }
 
 pub async fn cmd_approve(bot: Bot, msg: Message, id: String, db: DbPool) -> HandlerResult {
-    let id: i64 = parse_integer!(bot, msg.chat.id, id);
+    let id: i32 = parse_integer!(bot, msg.chat.id, id);
 
     if let Some(user) = msg.from() {
         let user = find_or_create_user(&db, user).await?;
@@ -108,7 +108,7 @@ pub async fn cmd_approve(bot: Bot, msg: Message, id: String, db: DbPool) -> Hand
             r#"SELECT "request".id AS request_id, "request".message, "user".*
                 FROM "request"
                 INNER JOIN "user" ON "request".requested_by = "user".id
-                WHERE request_id = $1 AND "request".is_approved = false
+                WHERE "request".id = $1 AND "request".is_approved = false
                 LIMIT 1;"#,
         )
         .bind(id)
@@ -156,7 +156,7 @@ pub async fn cmd_approve(bot: Bot, msg: Message, id: String, db: DbPool) -> Hand
 }
 
 pub async fn cmd_decline(bot: Bot, msg: Message, id: String, db: DbPool) -> HandlerResult {
-    let id: i64 = parse_integer!(bot, msg.chat.id, id);
+    let id: i32 = parse_integer!(bot, msg.chat.id, id);
 
     if let Some(user) = msg.from() {
         let user = find_or_create_user(&db, user).await?;
@@ -169,7 +169,7 @@ pub async fn cmd_decline(bot: Bot, msg: Message, id: String, db: DbPool) -> Hand
             r#"SELECT "request".id AS request_id, "request".message, "user".*
                 FROM "request"
                 INNER JOIN "user" ON "request".requested_by = "user".id
-                WHERE request_id = $1 AND "request".is_approved = false
+                WHERE "request".id = $1 AND "request".is_approved = false
                 LIMIT 1;"#,
         )
         .bind(id)

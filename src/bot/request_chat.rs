@@ -41,7 +41,7 @@ pub async fn cmd_request_chat(bot: Bot, msg: Message, text: String, db: DbPool) 
             .bind(user.id)
             .bind(chat.id)
             .bind(text)
-            .bind(0)
+            .bind(false)
             .execute(&db)
             .await?;
         event!(Level::INFO, "added chat request for {}", chat);
@@ -101,7 +101,7 @@ pub async fn cmd_listrequests_chat(bot: Bot, msg: Message, db: DbPool) -> Handle
 }
 
 pub async fn cmd_approve_chat(bot: Bot, msg: Message, id: String, db: DbPool) -> HandlerResult {
-    let id: i64 = parse_integer!(bot, msg.chat.id, id);
+    let id: i32 = parse_integer!(bot, msg.chat.id, id);
 
     if let Some(user) = msg.from() {
         let user = find_or_create_user(&db, user).await?;
@@ -110,6 +110,7 @@ pub async fn cmd_approve_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
         }
 
         // get request
+        // BUG: FIX SQL
         let res: Result<RequestChatWithChat, sqlx::Error> = sqlx::query_as(
             r#"SELECT "request_chat".id AS request_id, "request_chat".message, "chat".*
             FROM "request_chat"
@@ -157,7 +158,7 @@ pub async fn cmd_approve_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
 }
 
 pub async fn cmd_decline_chat(bot: Bot, msg: Message, id: String, db: DbPool) -> HandlerResult {
-    let id: i64 = parse_integer!(bot, msg.chat.id, id);
+    let id: i32 = parse_integer!(bot, msg.chat.id, id);
 
     if let Some(user) = msg.from() {
         let user = find_or_create_user(&db, user).await?;
