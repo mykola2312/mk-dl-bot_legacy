@@ -15,7 +15,7 @@ pub async fn create_user(db: &DbPool, user: &types::User) -> Result<User, sqlx::
     .bind(&user.last_name)
     .bind(false)
     .bind(false)
-    .bind(0)
+    .bind(false)
     .execute(db)
     .await?;
 
