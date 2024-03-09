@@ -130,7 +130,6 @@ enum Command {
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
     bot.send_message(msg.chat.id, t!("test_response")).await?;
-    dbg!(msg);
 
     Ok(())
 }
