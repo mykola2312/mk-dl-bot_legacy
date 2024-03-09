@@ -17,7 +17,9 @@ rust_i18n::i18n!("locales");
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dotenv().ok();
+    if cfg!(debug_assertions) {
+        dotenv().ok();
+    }
 
     log_init();
     let db = db_init().await;
