@@ -1,3 +1,4 @@
 /target
+k8s/*secret.yml
 .env*
 *.json
