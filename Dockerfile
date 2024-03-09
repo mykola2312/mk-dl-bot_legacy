@@ -27,6 +27,7 @@ RUN mkdir -p /var/log/mk-dl-bot
 
 WORKDIR /app
 COPY migrations ./migrations
+COPY locales ./locales
 COPY --from=builder /usr/src/app/target/release/mk-dl-bot .
 
 ENTRYPOINT ["/app/mk-dl-bot"]
