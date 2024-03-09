@@ -1,5 +1,23 @@
 services:
-  mk-dl-bot:
+  postgresdb:
+    image: postgres:alpine
+    env_file:
+      - .env
+    volumes:
+      - db:/var/lib/postgres
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  bot:
     build: .
     env_file:
       - .env
+    depends_on:
+      - postgresdb
+    restart: on-failure
+volumes:
+  db:
