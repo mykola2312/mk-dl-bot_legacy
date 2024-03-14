@@ -1,6 +1,10 @@
 node {
     def app
 
+    environment {
+        DOCKER_BUILDKIT = '1'
+    }
+
     stage('Clone') {
         checkout scm
     }
