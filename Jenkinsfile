@@ -1,16 +1,14 @@
 node {
     def app
 
-    environment {
-        DOCKER_BUILDKIT = '1'
-    }
-
     stage('Clone') {
         checkout scm
     }
 
     stage('Build') {
-        app = docker.build('mykola2312/mk-dl-bot')
+        withEnv(['DOCKER_BUILDKIT=1']) {
+            app = docker.build('mykola2312/mk-dl-bot')
+        }
     }
 
     stage('Push') {
