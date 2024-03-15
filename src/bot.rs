@@ -7,6 +7,7 @@ pub mod request_chat;
 pub mod sanitize;
 pub mod start;
 pub mod types;
+pub mod version;
 
 #[macro_export]
 macro_rules! reply_i18n_and_return {
