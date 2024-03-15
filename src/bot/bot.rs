@@ -104,10 +104,7 @@ async fn handle_message(
 #[command(rename_rule = "lowercase")]
 enum Command {
     Test,
-    
-    #[command(alias = "start")]
     Start,
-    
     Version,
 
     #[command(alias = "dl")]
