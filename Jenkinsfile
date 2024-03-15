@@ -18,6 +18,7 @@ node {
     }
 
     stage('Rollout') {
+        sh('kubectl apply -f k8s/')
         sh('kubectl rollout restart deployment bot')
     }
 }
