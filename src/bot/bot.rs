@@ -8,6 +8,7 @@ use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommand
 use tracing::{event, Level};
 
 use super::start::handle_new_chat_member;
+use super::version::cmd_version;
 use super::types::*;
 use crate::db::DbPool;
 use crate::util::{parse_env, unwrap_env};
@@ -48,6 +49,7 @@ fn schema() -> UpdateHandler<HandlerErr> {
 
     let command_handler = teloxide::filter_command::<Command, _>()
         .branch(case![Command::Test].endpoint(cmd_test))
+        .branch(case![Command::Version].endpoint(cmd_version))
         .branch(case![Command::Start].endpoint(cmd_start))
         .branch(case![Command::Download(url)].endpoint(cmd_download))
         .branch(case![Command::OP].endpoint(cmd_op))
@@ -102,20 +104,21 @@ async fn handle_message(
 #[command(rename_rule = "lowercase")]
 enum Command {
     Test,
+    
     #[command(alias = "start")]
     Start,
+    
+    Version,
+
     #[command(alias = "dl")]
     Download(String),
+    
     #[command(alias = "op")]
     OP,
 
-    #[command(alias = "request")]
     Request(String),
-    #[command(alias = "listrequests")]
     ListRequests,
-    #[command(alias = "approve")]
     Approve(String),
-    #[command(alias = "decline")]
     Decline(String),
 
     #[command(alias = "request_chat")]
