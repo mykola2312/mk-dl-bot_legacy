@@ -133,11 +133,13 @@ pub async fn cmd_approve_chat(bot: Bot, msg: Message, id: String, db: DbPool) ->
         };
 
         // approve request
-        sqlx::query(r#"UPDATE "request_chat" SET approved_by = $1, is_approved = true WHERE id = $2;"#)
-            .bind(user.id)
-            .bind(request.request_id)
-            .execute(&db)
-            .await?;
+        sqlx::query(
+            r#"UPDATE "request_chat" SET approved_by = $1, is_approved = true WHERE id = $2;"#,
+        )
+        .bind(user.id)
+        .bind(request.request_id)
+        .execute(&db)
+        .await?;
         event!(
             Level::INFO,
             "approved chat request {} by {} for {}",
