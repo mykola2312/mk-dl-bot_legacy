@@ -36,9 +36,11 @@ spec:
                 key: BOT_API_HASH
           - name: HTTP_PORT
             value: "8081"
+        command: ["/app/telegram-bot-api"]
+        args: ["--api-id=$(API_ID)", "--api-hash=$(API_HASH)", "--local", "--http-port=$(HTTP_PORT)", "--dir=/var/lib/telegram-bot-api"]
         volumeMounts:
         - name: tg-data
-          mountPath: /app
+          mountPath: /var/lib/telegram-bot-api
   volumeClaimTemplates:
   - metadata:
       name: tg-data
