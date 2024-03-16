@@ -71,15 +71,19 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
     let av = match info.best_av_format() {
         Some(av) => av,
         None => {
-            event!(Level::WARN, "no best format found for {}, reverting to default", url);
+            event!(
+                Level::WARN,
+                "no best format found for {}, reverting to default",
+                url
+            );
             match info.default_format() {
                 Some(format) => format,
                 None => {
                     event!(Level::ERROR, "no formats found for {}", url);
-                    return Err(DownloadError::NoFormatFound)
+                    return Err(DownloadError::NoFormatFound);
                 }
             }
-        },
+        }
     };
 
     let output_path = make_download_path(&info, &av)?;

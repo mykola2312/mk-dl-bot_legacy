@@ -37,6 +37,38 @@ impl FFMpeg {
 
         Ok(())
     }
+
+    pub async fn join_audio_video(
+        video_path: &str,
+        audio_path: &str,
+        abr: u16,
+        output_path: &str,
+    ) -> Result<(), SpawnError> {
+        let abr = format!("{}k", abr);
+        let output = spawn(
+            "ffmpeg",
+            &[
+                "-i",
+                video_path,
+                "-i",
+                audio_path,
+                "-c",
+                "copy",
+                "-map",
+                "0:v:0",
+                "-map",
+                "1:a:0",
+                "-c:a",
+                "aac",
+                "-b:a",
+                &abr,
+                output_path,
+            ],
+        )
+        .await?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
