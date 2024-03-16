@@ -38,7 +38,7 @@ impl FFMpeg {
         Ok(())
     }
 
-    pub async fn join_audio_video(
+    pub async fn join_video_audio(
         video_path: &str,
         audio_path: &str,
         abr: u16,
