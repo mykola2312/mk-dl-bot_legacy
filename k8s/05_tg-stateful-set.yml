@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tg
+  namespace: mk-dl-bot
+spec:
+  selector:
+    matchLabels:
+      app: mk-dl-bot
+      service: tg
+  serviceName: "tg"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mk-dl-bot
+        service: tg
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: tg
+        image: mykola2312/telegram-bot-api:latest
+        ports:
+        - containerPort: 8081
+          name: tg
+        volumeMounts:
+        - name: tg-data
+          mountPath: /app
+  volumeClaimTemplates:
+  - metadata:
+      name: tg-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+---
+
