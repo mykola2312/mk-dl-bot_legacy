@@ -153,7 +153,7 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
         af.format_id
     );
 
-    let res = FFMpeg::join_audio_video(
+    let res = FFMpeg::join_video_audio(
         video_path.as_str(),
         audio_path.as_str(),
         abr,
