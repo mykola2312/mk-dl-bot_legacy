@@ -19,7 +19,7 @@ spec:
         service: bot
     spec:
       containers:
-        - image: mykola2312/mk-dl-bot:v0.1.1
+        - image: mykola2312/mk-dl-bot:v0.2.0
           name: bot
           envFrom:
             - secretRef:

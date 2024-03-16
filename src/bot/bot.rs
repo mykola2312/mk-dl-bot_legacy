@@ -133,7 +133,6 @@ enum Command {
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
     //bot.send_message(msg.chat.id, t!("test_response")).await?;
-    bot.send_video(msg.chat.id, InputFile::url(Url::from_str("http://mkdlbot.ddns.net/output3.mp4")?)).await?;
 
     Ok(())
 }
