@@ -79,6 +79,8 @@ pub struct YtDlpInfo {
 }
 
 impl YtDlpInfo {
+    const H_LIMIT: u16 = 720;
+
     pub fn parse(json: &[u8]) -> Result<YtDlpInfo, serde_json::Error> {
         let mut info: YtDlpInfo = serde_json::from_slice(json)?;
         for format in &mut info.formats {
@@ -86,6 +88,18 @@ impl YtDlpInfo {
         }
 
         Ok(info)
+    }
+
+    pub fn default_format(&self) -> Option<&YtDlpFormat> {
+        match self
+            .formats
+            .iter()
+            .filter(|f| f.height.is_some_and(|h| h <= Self::H_LIMIT))
+            .last()
+        {
+            Some(format) => Some(format),
+            None => self.formats.last(),
+        }
     }
 
     pub fn best_av_format(&self) -> Option<&YtDlpFormat> {
@@ -141,6 +155,7 @@ pub enum YtDlpError {
     SpawnError(SpawnError),
     ErrorMessage(String), // keep it separate type if we ever plan to parse yt-dlp errors
     JsonError,
+    NoFormats,
     NoFilePresent,
 }
 // ^(?:ERROR: \[.*\] \S* )(.*$) - regex for matching yt-dlp's youtube errors
@@ -167,6 +182,7 @@ impl fmt::Display for YtDlpError {
             YTE::SpawnError(e) => write!(f, "{}", e),
             YTE::ErrorMessage(msg) => write!(f, "yt-dlp error - {}", msg),
             YTE::JsonError => write!(f, "json parsing error"),
+            YTE::NoFormats => write!(f, "no formats were parsed"),
             YTE::NoFilePresent => write!(f, "downloaded file doesn't exists"),
         }
     }
@@ -179,7 +195,12 @@ impl YtDlp {
     pub async fn load_info(url: &str) -> Result<YtDlpInfo, YtDlpError> {
         let output = spawn("python", &["-m", "yt_dlp", url, "-j"]).await?;
 
-        Ok(YtDlpInfo::parse(&output.stdout)?)
+        let info = YtDlpInfo::parse(&output.stdout)?;
+        if info.formats.is_empty() {
+            return Err(YtDlpError::NoFormats);
+        }
+
+        Ok(info)
     }
 
     pub async fn download(url: &str, format_id: &str, output_path: &str) -> Result<(), YtDlpError> {
