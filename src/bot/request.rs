@@ -23,22 +23,25 @@ pub async fn cmd_request(bot: Bot, msg: Message, text: String, db: DbPool) -> Ha
             reply_i18n_and_return!(bot, msg.chat.id, "already_can_download");
         }
 
-        let requests: i64 = sqlx::query(r#"SELECT COUNT(1) FROM "request" WHERE requested_by = $1;"#)
-            .bind(user.id)
-            .fetch_one(&db)
-            .await?
-            .get(0);
+        let requests: i64 =
+            sqlx::query(r#"SELECT COUNT(1) FROM "request" WHERE requested_by = $1;"#)
+                .bind(user.id)
+                .fetch_one(&db)
+                .await?
+                .get(0);
         if requests > 0 {
             reply_i18n_and_return!(bot, msg.chat.id, "already_has_requested");
         }
 
         // put the request
-        sqlx::query(r#"INSERT INTO "request" (requested_by,message,is_approved) VALUES ($1,$2,$3);"#)
-            .bind(user.id)
-            .bind(text)
-            .bind(false)
-            .execute(&db)
-            .await?;
+        sqlx::query(
+            r#"INSERT INTO "request" (requested_by,message,is_approved) VALUES ($1,$2,$3);"#,
+        )
+        .bind(user.id)
+        .bind(text)
+        .bind(false)
+        .execute(&db)
+        .await?;
         event!(Level::INFO, "added request for {}", user);
 
         // notify admins

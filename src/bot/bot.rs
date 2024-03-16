@@ -8,8 +8,8 @@ use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommand
 use tracing::{event, Level};
 
 use super::start::handle_new_chat_member;
-use super::version::cmd_version;
 use super::types::*;
+use super::version::cmd_version;
 use crate::db::DbPool;
 use crate::util::{parse_env, unwrap_env};
 
@@ -109,7 +109,7 @@ enum Command {
 
     #[command(alias = "dl")]
     Download(String),
-    
+
     #[command(alias = "op")]
     OP,
 
