@@ -152,19 +152,19 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
         vf.format_id,
         af.format_id
     );
-    match FFMpeg::join_audio_video(
+
+    let res = FFMpeg::join_audio_video(
         video_path.as_str(),
         audio_path.as_str(),
         abr,
         output_path.as_str(),
     )
-    .await
-    {
+    .await;
+    delete_if_exists(&video_path);
+    delete_if_exists(&audio_path);
+
+    match res {
         Ok(()) => Ok(output_path),
-        Err(e) => {
-            delete_if_exists(&video_path);
-            delete_if_exists(&audio_path);
-            return Err(DownloadError::Message(e.to_string()));
-        }
+        Err(e) => Err(DownloadError::Message(e.to_string())),
     }
 }
