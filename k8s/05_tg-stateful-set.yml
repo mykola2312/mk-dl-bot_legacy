@@ -23,6 +23,19 @@ spec:
         ports:
         - containerPort: 8081
           name: tg
+        env:
+          - name: API_ID
+            valueFrom:
+              secretKeyRef:
+                name: secret
+                key: BOT_API_ID
+          - name: API_HASH
+            valueFrom:
+              secretKeyRef:
+                name: secret
+                key: BOT_API_HASH
+          - name: HTTP_PORT
+            value: "8081"
         volumeMounts:
         - name: tg-data
           mountPath: /app
