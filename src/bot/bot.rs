@@ -1,9 +1,10 @@
 use anyhow;
 use rust_i18n::t;
-use std::str;
+use url::Url;
+use std::str::{self, FromStr};
 use std::time::Duration;
 use teloxide::dispatching::{dialogue, dialogue::InMemStorage, UpdateHandler};
-use teloxide::types::{Me, MessageKind, MessageNewChatMembers, UpdateKind};
+use teloxide::types::{InputFile, InputMediaVideo, Me, MessageKind, MessageNewChatMembers, UpdateKind};
 use teloxide::{prelude::*, update_listeners::Polling, utils::command::BotCommands};
 use tracing::{event, Level};
 
@@ -24,7 +25,9 @@ use super::start::{cmd_start, handle_my_chat_member};
 pub async fn bot_main(db: DbPool) -> anyhow::Result<()> {
     event!(Level::INFO, "start");
 
-    let bot = Bot::new(unwrap_env("BOT_TOKEN"));
+    let bot = Bot::new(unwrap_env("BOT_TOKEN"))
+        .set_api_url(Url::from_str(&unwrap_env("BOT_API_URL"))?);
+
     let listener = Polling::builder(bot.clone())
         .timeout(Duration::from_secs(parse_env("POLLING_TIMEOUT")))
         .limit(parse_env("POLLING_LIMIT"))
@@ -129,7 +132,8 @@ enum Command {
 }
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
-    bot.send_message(msg.chat.id, t!("test_response")).await?;
+    //bot.send_message(msg.chat.id, t!("test_response")).await?;
+    bot.send_video(msg.chat.id, InputFile::url(Url::from_str("http://mkdlbot.ddns.net/output3.mp4")?)).await?;
 
     Ok(())
 }
