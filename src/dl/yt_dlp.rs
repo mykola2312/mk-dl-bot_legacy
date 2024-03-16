@@ -22,8 +22,20 @@ pub struct YtDlpFormat {
 
 struct VideoFormat<'a> {
     pub format: &'a YtDlpFormat,
+    pub format_note: &'a String,
     pub width: u16,
     pub height: u16,
+    pub vbr: f32,
+}
+
+impl<'a> VideoFormat<'a> {
+    pub fn is_mp4(&self) -> bool {
+        self.format.ext == "mp4"
+    }
+
+    pub fn is_premium(&self) -> bool {
+        self.format_note.contains("Premium")
+    }
 }
 
 struct AudioFormat<'a> {
@@ -79,7 +91,7 @@ pub struct YtDlpInfo {
 }
 
 impl YtDlpInfo {
-    const H_LIMIT: u16 = 720;
+    const H_LIMIT: u16 = 1080;
 
     pub fn parse(json: &[u8]) -> Result<YtDlpInfo, serde_json::Error> {
         let mut info: YtDlpInfo = serde_json::from_slice(json)?;
@@ -102,6 +114,10 @@ impl YtDlpInfo {
         }
     }
 
+    #[deprecated(
+        since = "0.1.1",
+        note = "for YouTube download audio and video separately"
+    )]
     pub fn best_av_format(&self) -> Option<&YtDlpFormat> {
         let format = self
             .formats
@@ -110,8 +126,10 @@ impl YtDlpInfo {
                 if f.vcodec.is_some() && f.acodec.is_some() {
                     Some(VideoFormat {
                         format: &f,
+                        format_note: f.format_note.as_ref()?,
                         width: f.width?,
                         height: f.height?,
+                        vbr: f.vbr?,
                     })
                 } else {
                     None
@@ -144,6 +162,31 @@ impl YtDlpInfo {
             Some(af) => Some(af.format),
             None => {
                 event!(Level::ERROR, "no audio format for {}", self.id);
+                None
+            }
+        }
+    }
+
+    pub fn best_video_format(&self) -> Option<&YtDlpFormat> {
+        let format = self
+            .formats
+            .iter()
+            .filter_map(|f| {
+                Some(VideoFormat {
+                    format: f,
+                    format_note: f.format_note.as_ref()?,
+                    width: f.width?,
+                    height: f.height?,
+                    vbr: f.vbr?,
+                })
+            })
+            .filter(|f| f.height <= Self::H_LIMIT && f.is_mp4() && !f.is_premium())
+            .max_by_key(|f| OrderedFloat(f.vbr));
+
+        match format {
+            Some(vf) => Some(vf.format),
+            None => {
+                event!(Level::ERROR, "no video format for {}", self.id);
                 None
             }
         }
@@ -249,5 +292,15 @@ mod tests {
             .unwrap();
         let video = info.best_audio_format().unwrap();
         assert_eq!(video.format_id, "140");
+    }
+
+    #[tokio::test]
+    async fn best_video_format() {
+        dotenv::from_filename(".env.test").unwrap();
+        let info = YtDlp::load_info(env::var("TEST_URL").unwrap().as_str())
+            .await
+            .unwrap();
+        let video = info.best_video_format().unwrap();
+        assert_eq!(video.format_id, "137");
     }
 }
