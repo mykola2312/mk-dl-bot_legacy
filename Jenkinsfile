@@ -13,12 +13,12 @@ node {
 
     stage('Push') {
         docker.withRegistry('https://registry.hub.docker.com', 'a2aa5264-dce1-4054-8828-8db95e3c6c3c') {
-            app.push('v0.2.0')
+            app.push('v0.1.1')
         }
     }
 
     stage('Rollout') {
         sh('kubectl apply -f k8s/')
-        sh('kubectl rollout restart deployment bot')
+        sh('kubectl rollout restart deployment bot -n mk-dl-bot')
     }
 }
