@@ -1,4 +1,5 @@
 use super::spawn::{spawn, SpawnError};
+use super::tmpfile::{TmpFile, TmpFileError};
 use core::fmt;
 use ordered_float::OrderedFloat;
 use serde::Deserialize;

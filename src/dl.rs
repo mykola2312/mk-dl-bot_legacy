@@ -9,6 +9,7 @@ use self::yt_dlp::{YtDlp, YtDlpError, YtDlpFormat, YtDlpInfo};
 
 pub mod ffmpeg;
 mod spawn;
+mod tmpfile;
 pub mod yt_dlp;
 
 pub enum DownloadError {
