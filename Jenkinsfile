@@ -13,7 +13,7 @@ node {
 
     stage('Push') {
         docker.withRegistry('https://registry.hub.docker.com', 'a2aa5264-dce1-4054-8828-8db95e3c6c3c') {
-            app.push('v0.1.1')
+            app.push('v1.0.0')
         }
     }
 
