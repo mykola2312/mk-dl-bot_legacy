@@ -3,7 +3,7 @@ use url::Url;
 
 // https://stackoverflow.com/questions/6038061/regular-expression-to-find-urls-within-a-string
 const RE_URL: &str =
-    r"(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])";
+    r"(http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])";
 
 pub fn extract_url(text: &str) -> Option<&str> {
     let re = Regex::new(RE_URL).unwrap();
