@@ -27,8 +27,12 @@ use super::start::{cmd_start, handle_my_chat_member};
 pub async fn bot_main(db: DbPool) -> anyhow::Result<()> {
     event!(Level::INFO, "start");
 
-    let bot =
-        Bot::new(unwrap_env("BOT_TOKEN")).set_api_url(Url::from_str(&unwrap_env("BOT_API_URL"))?);
+    let bot = if cfg!(debug_assertions) {
+        Bot::new(unwrap_env("BOT_TOKEN"))
+    } else {
+        // we use telegram bot api server only in production
+        Bot::new(unwrap_env("BOT_TOKEN")).set_api_url(Url::from_str(&unwrap_env("BOT_API_URL"))?)
+    };
 
     let listener = Polling::builder(bot.clone())
         .timeout(Duration::from_secs(parse_env("POLLING_TIMEOUT")))
