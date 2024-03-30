@@ -200,6 +200,7 @@ pub enum YtDlpError {
     ErrorMessage(String), // keep it separate type if we ever plan to parse yt-dlp errors
     JsonError,
     NoFormats,
+    MakePathError,
     NoFilePresent,
 }
 // ^(?:ERROR: \[.*\] \S* )(.*$) - regex for matching yt-dlp's youtube errors
@@ -210,6 +211,12 @@ impl From<SpawnError> for YtDlpError {
             SpawnError::ErrorMessage(msg) => Self::ErrorMessage(msg),
             _ => Self::SpawnError(value),
         }
+    }
+}
+
+impl From<TmpFileError> for YtDlpError {
+    fn from(_value: TmpFileError) -> Self {
+        Self::MakePathError
     }
 }
 
@@ -227,6 +234,7 @@ impl fmt::Display for YtDlpError {
             YTE::ErrorMessage(msg) => write!(f, "yt-dlp error - {}", msg),
             YTE::JsonError => write!(f, "json parsing error"),
             YTE::NoFormats => write!(f, "no formats were parsed"),
+            YTE::MakePathError => write!(f, "make path error"),
             YTE::NoFilePresent => write!(f, "downloaded file doesn't exists"),
         }
     }
@@ -247,7 +255,14 @@ impl YtDlp {
         Ok(info)
     }
 
-    pub async fn download(url: &str, format_id: &str, output_path: &str) -> Result<(), YtDlpError> {
+    pub async fn download(
+        url: &str,
+        info: &YtDlpInfo,
+        format: &YtDlpFormat,
+    ) -> Result<TmpFile, YtDlpError> {
+        let file =
+            TmpFile::new(format!("{}_{}.{}", info.id, format.format_id, format.ext).as_str())?;
+
         spawn(
             "python",
             &[
@@ -255,17 +270,17 @@ impl YtDlp {
                 "yt_dlp",
                 url,
                 "-f",
-                format_id,
+                &format.format_id,
                 "-o",
-                output_path,
+                &file.path,
                 "--force-overwrites",
             ],
         )
         .await?;
 
-        match fs::metadata(output_path) {
-            Ok(_) => Ok(()),
-            Err(_) => Err(YtDlpError::NoFilePresent),
+        match file.exists() {
+            true => Ok(file),
+            false => Err(YtDlpError::NoFilePresent),
         }
     }
 }

@@ -5,6 +5,7 @@ use tracing::{event, Level};
 use crate::dl::ffmpeg::FFMpeg;
 
 use self::spawn::SpawnError;
+use self::tmpfile::{TmpFile, TmpFileError};
 use self::yt_dlp::{YtDlp, YtDlpError, YtDlpFormat, YtDlpInfo};
 
 pub mod ffmpeg;
@@ -27,6 +28,14 @@ impl From<SpawnError> for DownloadError {
 impl From<YtDlpError> for DownloadError {
     fn from(value: YtDlpError) -> Self {
         Self::Message(value.to_string())
+    }
+}
+
+impl From<TmpFileError> for DownloadError {
+    fn from(value: TmpFileError) -> Self {
+        match value {
+            TmpFileError::MakePathError => DownloadError::MakePathError,
+        }
     }
 }
 
@@ -76,7 +85,7 @@ pub fn delete_if_exists(path: &str) {
     }
 }
 
-async fn download_fallback(url: &str, info: YtDlpInfo) -> Result<String, DownloadError> {
+async fn download_fallback(url: &str, info: YtDlpInfo) -> Result<TmpFile, DownloadError> {
     let av = match info.best_av_format() {
         Some(av) => av,
         None => {
@@ -95,16 +104,10 @@ async fn download_fallback(url: &str, info: YtDlpInfo) -> Result<String, Downloa
         }
     };
 
-    let output_path = make_download_path(&info, None, &av)?;
-    if let Err(e) = YtDlp::download(url, &av.format_id, output_path.as_str()).await {
-        delete_if_exists(&output_path);
-        return Err(DownloadError::Message(e.to_string()));
-    }
-
-    Ok(output_path)
+    Ok(YtDlp::download(url, &info, &av).await?)
 }
 
-pub async fn download(url: &str) -> Result<String, DownloadError> {
+pub async fn download(url: &str) -> Result<TmpFile, DownloadError> {
     event!(Level::INFO, "url {}", url);
 
     let info = YtDlp::load_info(url).await?;
@@ -117,19 +120,8 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
         None => return download_fallback(url, info).await,
     };
 
-    // TODO: I should wrap those temp files in a impl Drop for defer deletion
-    let video_path = make_download_path(&info, Some("video"), &vf)?;
-    if let Err(e) = YtDlp::download(url, &vf.format_id, video_path.as_str()).await {
-        delete_if_exists(&video_path);
-        return Err(DownloadError::Message(e.to_string()));
-    }
-
-    let audio_path = make_download_path(&info, Some("audio"), &af)?;
-    if let Err(e) = YtDlp::download(url, &af.format_id, audio_path.as_str()).await {
-        delete_if_exists(&video_path);
-        delete_if_exists(&audio_path);
-        return Err(DownloadError::Message(e.to_string()));
-    }
+    let video = YtDlp::download(url, &info, &vf).await?;
+    let audio = YtDlp::download(url, &info, &af).await?;
 
     let abr = if let Some(abr) = af.abr {
         FFMpeg::round_mp3_bitrate(abr)
@@ -144,8 +136,7 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
         192
     };
 
-    let output_path = make_download_path(&info, None, &vf)?;
-
+    let output = TmpFile::new(format!("{}.{}", &info.id, &vf.ext).as_str())?;
     event!(
         Level::INFO,
         "for {} we joining video {} and audio {}",
@@ -154,18 +145,10 @@ pub async fn download(url: &str) -> Result<String, DownloadError> {
         af.format_id
     );
 
-    let res = FFMpeg::join_video_audio(
-        video_path.as_str(),
-        audio_path.as_str(),
-        abr,
-        output_path.as_str(),
-    )
-    .await;
-    delete_if_exists(&video_path);
-    delete_if_exists(&audio_path);
+    let res = FFMpeg::join_video_audio(&video.path, &audio.path, abr, &output.path).await;
 
     match res {
-        Ok(()) => Ok(output_path),
+        Ok(()) => Ok(output),
         Err(e) => Err(DownloadError::Message(e.to_string())),
     }
 }

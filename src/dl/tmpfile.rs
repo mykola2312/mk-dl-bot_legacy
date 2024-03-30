@@ -2,7 +2,7 @@ use std::fs;
 use tracing::{event, Level};
 
 pub enum TmpFileError {
-    MakePathError
+    MakePathError,
 }
 
 pub struct TmpFile {
@@ -10,20 +10,20 @@ pub struct TmpFile {
 }
 
 impl TmpFile {
-    pub fn new(filename: String) -> Result<Self, TmpFileError> {
+    pub fn new(filename: &str) -> Result<Self, TmpFileError> {
         let path = std::env::temp_dir()
             .join(filename)
             .into_os_string()
             .into_string()
             .map_err(|_| TmpFileError::MakePathError)?;
-        
+
         Ok(Self { path })
     }
 
     pub fn exists(&self) -> bool {
         match fs::metadata(&self.path) {
             Ok(_) => true,
-            Err(_) => false
+            Err(_) => false,
         }
     }
 
