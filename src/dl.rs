@@ -1,7 +1,7 @@
 use std::fmt;
 use tracing::{event, Level};
 
-use crate::bot::sanitize::{extract_url, parse_url};
+use crate::security::sanitize::{extract_url, parse_url};
 use crate::dl::ffmpeg::FFMpeg;
 
 use self::spawn::SpawnError;
@@ -9,7 +9,7 @@ use self::tmpfile::{TmpFile, TmpFileError};
 use self::yt_dlp::{YtDlp, YtDlpError, YtDlpInfo};
 
 pub mod ffmpeg;
-mod spawn;
+pub mod spawn;
 mod tmpfile;
 pub mod yt_dlp;
 
@@ -71,25 +71,7 @@ const DOWNLOADERS: [(&'static str, Downloader); 4] = [
 
 impl Downloader {
     async fn default_download(url: &str, info: &YtDlpInfo) -> Result<TmpFile, DownloadError> {
-        let av = match info.best_av_format() {
-            Some(av) => av,
-            None => {
-                event!(
-                    Level::WARN,
-                    "no best format found for {}, reverting to default",
-                    url
-                );
-                match info.default_format() {
-                    Some(format) => format,
-                    None => {
-                        event!(Level::ERROR, "no formats found for {}", url);
-                        return Err(DownloadError::NoFormatFound);
-                    }
-                }
-            }
-        };
-
-        Ok(YtDlp::download(url, &info, &av).await?)
+        Ok(YtDlp::download(url, &info).await?)
     }
 
     async fn youtube_download(url: &str, info: &YtDlpInfo) -> Result<TmpFile, DownloadError> {
@@ -102,8 +84,8 @@ impl Downloader {
             None => return Err(DownloadError::NoFormatFound),
         };
 
-        let video = YtDlp::download(url, &info, &vf).await?;
-        let audio = YtDlp::download(url, &info, &af).await?;
+        let video = YtDlp::download_format(url, &info, &vf).await?;
+        let audio = YtDlp::download_format(url, &info, &af).await?;
 
         let abr = if let Some(abr) = af.abr {
             FFMpeg::round_mp3_bitrate(abr)
@@ -141,7 +123,7 @@ impl Downloader {
             .find(|f| f.format_id == "0")
             .ok_or(DownloadError::NoFormatFound)?;
 
-        Ok(YtDlp::download(url, info, original).await?)
+        Ok(YtDlp::download_format(url, info, original).await?)
     }
 
     pub async fn download(&self, url: &str, info: &YtDlpInfo) -> Result<TmpFile, DownloadError> {

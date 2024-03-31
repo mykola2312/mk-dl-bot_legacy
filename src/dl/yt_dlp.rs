@@ -253,7 +253,29 @@ impl YtDlp {
         Ok(info)
     }
 
-    pub async fn download(
+    pub async fn download(url: &str, info: &YtDlpInfo) -> Result<TmpFile, YtDlpError> {
+        let file = TmpFile::new(&info.id)?;
+
+        spawn(
+            "python",
+            &[
+                "-m",
+                "yt_dlp",
+                url,
+                "-o",
+                &file.path,
+                "--force-overwrites",
+            ],
+        )
+        .await?;
+
+        match file.exists() {
+            true => Ok(file),
+            false => Err(YtDlpError::NoFilePresent),
+        }
+    }
+
+    pub async fn download_format(
         url: &str,
         info: &YtDlpInfo,
         format: &YtDlpFormat,

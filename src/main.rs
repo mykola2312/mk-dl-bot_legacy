@@ -13,6 +13,8 @@ use log::log_init;
 mod db;
 use db::db_init;
 
+mod security;
+
 rust_i18n::i18n!("locales");
 
 #[tokio::main]
