@@ -1,6 +1,7 @@
 use std::fs;
 use tracing::{event, Level};
 
+#[derive(Debug)]
 pub enum TmpFileError {
     MakePathError,
 }
