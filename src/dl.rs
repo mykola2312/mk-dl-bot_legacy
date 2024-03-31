@@ -1,8 +1,8 @@
 use std::fmt;
 use tracing::{event, Level};
 
-use crate::security::sanitize::{extract_url, parse_url};
 use crate::dl::ffmpeg::FFMpeg;
+use crate::security::sanitize::{extract_url, parse_url};
 
 use self::spawn::SpawnError;
 use self::tmpfile::{TmpFile, TmpFileError};
@@ -118,7 +118,8 @@ impl Downloader {
     }
 
     async fn tiktok_download(url: &str, info: &YtDlpInfo) -> Result<TmpFile, DownloadError> {
-        let original = info.formats
+        let original = info
+            .formats
             .iter()
             .find(|f| f.format_id == "0")
             .ok_or(DownloadError::NoFormatFound)?;
@@ -130,7 +131,7 @@ impl Downloader {
         match self {
             Downloader::Default => Self::default_download(url, info).await,
             Downloader::YouTube => Self::youtube_download(url, info).await,
-            Downloader::TikTok => Self::tiktok_download(url, info).await
+            Downloader::TikTok => Self::tiktok_download(url, info).await,
         }
     }
 }
@@ -140,7 +141,7 @@ impl fmt::Display for Downloader {
         match self {
             Downloader::Default => write!(f, "Default"),
             Downloader::YouTube => write!(f, "YouTube"),
-            Downloader::TikTok => write!(f, "TikTok")
+            Downloader::TikTok => write!(f, "TikTok"),
         }
     }
 }
@@ -149,19 +150,25 @@ pub async fn download(url: &str) -> Result<TmpFile, DownloadError> {
     let url = parse_url(extract_url(url).ok_or(DownloadError::NotAnURL)?)
         .ok_or(DownloadError::NotAnURL)?;
     let host_url = url.host_str().ok_or(DownloadError::NotAnURL)?;
-    
+
     let downloader = &DOWNLOADERS
         .iter()
         .find(|f| f.0 == host_url)
-        .unwrap_or(&DEFAULT_DOWNLOADER).1;
+        .unwrap_or(&DEFAULT_DOWNLOADER)
+        .1;
     event!(Level::INFO, "using {} downloader for {}", downloader, url);
 
     let info = YtDlp::load_info(url.as_str()).await?;
     let output = match downloader.download(url.as_str(), &info).await {
         Ok(output) => output,
         Err(e) => {
-            event!(Level::ERROR, "downloader {} failed: {}. falling back to default downloader", downloader, e);
-            
+            event!(
+                Level::ERROR,
+                "downloader {} failed: {}. falling back to default downloader",
+                downloader,
+                e
+            );
+
             DEFAULT_DOWNLOADER.1.download(url.as_str(), &info).await?
         }
     };
