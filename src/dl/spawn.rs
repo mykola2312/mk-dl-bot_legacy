@@ -98,21 +98,25 @@ pub async fn spawn_pipe(
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
     use crate::dl::spawn::{spawn_pipe, SpawnError};
     use crate::dl::tmpfile::TmpFile;
 
     #[tokio::test]
     async fn test_spawn_pipe() {
-        let stdout = TmpFile::new("stdout.test").unwrap();
+        let stdout_file = TmpFile::new("stdout.test").unwrap();
         let result = spawn_pipe(
             "python",
             &[
                 "-c",
-                "import sys; print(file=sys.stderr, 'stderr test'); sys.exit(1)",
+                "import sys; print('stdout test', end=''); print('stderr test', file=sys.stderr, end=''); sys.exit(1)",
             ],
-            &stdout,
+            &stdout_file,
         )
         .await;
+
+        let stdout = fs::read_to_string(&stdout_file.path).unwrap();
+        assert_eq!("stdout test", stdout);
 
         assert_eq!(true, result.is_err());
         if let Err(e) = result {
