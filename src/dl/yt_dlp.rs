@@ -4,7 +4,6 @@ use core::fmt;
 use ordered_float::OrderedFloat;
 use serde::Deserialize;
 use serde_json;
-use std::fs;
 use tracing::{event, Level};
 
 #[derive(Deserialize, Debug)]
@@ -21,6 +20,7 @@ pub struct YtDlpFormat {
     pub abr: Option<f32>,
 }
 
+#[allow(unused)]
 struct VideoFormat<'a> {
     pub format: &'a YtDlpFormat,
     pub format_note: &'a String,
@@ -101,18 +101,6 @@ impl YtDlpInfo {
         }
 
         Ok(info)
-    }
-
-    pub fn default_format(&self) -> Option<&YtDlpFormat> {
-        match self
-            .formats
-            .iter()
-            .filter(|f| f.height.is_some_and(|h| h <= Self::H_LIMIT))
-            .last()
-        {
-            Some(format) => Some(format),
-            None => self.formats.last(),
-        }
     }
 
     pub fn best_audio_format(&self) -> Option<&YtDlpFormat> {
@@ -257,7 +245,7 @@ impl YtDlp {
         let file =
             TmpFile::new(format!("{}_{}.{}", info.id, format.format_id, format.ext).as_str())?;
 
-        spawn(
+        spawn_pipe(
             "python",
             &[
                 "-m",
@@ -266,10 +254,11 @@ impl YtDlp {
                 "-f",
                 &format.format_id,
                 "-o",
-                &file.path,
+                "-",
                 "--force-overwrites",
                 "--no-exec",
             ],
+            &file
         )
         .await?;
 
