@@ -98,9 +98,9 @@ pub async fn spawn_pipe(
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use crate::dl::spawn::{spawn_pipe, SpawnError};
     use crate::dl::tmpfile::TmpFile;
+    use std::fs;
 
     #[tokio::test]
     async fn test_spawn_pipe() {
@@ -122,7 +122,7 @@ mod tests {
         if let Err(e) = result {
             match e {
                 SpawnError::ErrorMessage(msg) => assert_eq!("stderr test", msg),
-                _ => panic!("SpawnError is not ErrorMessage!")
+                _ => panic!("SpawnError is not ErrorMessage!"),
             }
         }
     }

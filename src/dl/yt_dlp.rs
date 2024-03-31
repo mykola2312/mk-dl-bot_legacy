@@ -258,7 +258,7 @@ impl YtDlp {
                 "--force-overwrites",
                 "--no-exec",
             ],
-            &file
+            &file,
         )
         .await?;
 
