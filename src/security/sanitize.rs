@@ -19,7 +19,7 @@ pub fn parse_url(url: &str) -> Option<Url> {
 
 #[cfg(test)]
 mod tests {
-    use crate::bot::sanitize::{extract_url, parse_url};
+    use crate::security::sanitize::{extract_url, parse_url};
 
     #[test]
     fn test_extract_url() {
