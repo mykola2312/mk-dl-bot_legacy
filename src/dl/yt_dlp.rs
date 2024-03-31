@@ -1,4 +1,4 @@
-use super::spawn::{spawn, SpawnError};
+use super::spawn::{spawn, spawn_pipe, SpawnError};
 use super::tmpfile::{TmpFile, TmpFileError};
 use core::fmt;
 use ordered_float::OrderedFloat;
@@ -254,21 +254,26 @@ impl YtDlp {
     }
 
     pub async fn download(url: &str, info: &YtDlpInfo) -> Result<TmpFile, YtDlpError> {
-        let file = TmpFile::new(&format!("{}.bin", info.id))?;
+        let file = TmpFile::new(&info.id)?;
 
-        spawn(
+        // since yt-dlp tend to randomly choose filename we can't rely on it,
+        // and instead output to stdout and then pipe to our file
+        // that way we can avoid bugs related to filename confusion
+        let output = spawn_pipe(
             "python",
             &[
                 "-m",
                 "yt_dlp",
                 url,
                 "-o",
-                &file.path,
+                "-",
                 "--force-overwrites",
                 "--no-exec",
             ],
+            &file,
         )
         .await?;
+        dbg!(output);
 
         match file.exists() {
             true => Ok(file),
