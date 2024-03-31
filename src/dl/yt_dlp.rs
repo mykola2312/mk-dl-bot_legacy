@@ -243,7 +243,7 @@ impl fmt::Display for YtDlpError {
 pub struct YtDlp {}
 impl YtDlp {
     pub async fn load_info(url: &str) -> Result<YtDlpInfo, YtDlpError> {
-        let output = spawn("python", &["-m", "yt_dlp", url, "-j"]).await?;
+        let output = spawn("python", &["-m", "yt_dlp", url, "-j", "--no-exec"]).await?;
 
         let info = YtDlpInfo::parse(&output.stdout)?;
         if info.formats.is_empty() {
@@ -254,7 +254,7 @@ impl YtDlp {
     }
 
     pub async fn download(url: &str, info: &YtDlpInfo) -> Result<TmpFile, YtDlpError> {
-        let file = TmpFile::new(&info.id)?;
+        let file = TmpFile::new(&format!("{}.bin", info.id))?;
 
         spawn(
             "python",
@@ -265,6 +265,7 @@ impl YtDlp {
                 "-o",
                 &file.path,
                 "--force-overwrites",
+                "--no-exec",
             ],
         )
         .await?;
@@ -294,6 +295,7 @@ impl YtDlp {
                 "-o",
                 &file.path,
                 "--force-overwrites",
+                "--no-exec",
             ],
         )
         .await?;
