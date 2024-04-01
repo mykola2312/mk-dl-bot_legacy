@@ -50,7 +50,14 @@ pub async fn spawn(program: &str, args: &[&str]) -> Result<Output, SpawnError> {
         event!(Level::INFO, "{} {}", program, cmd_args);
     }
 
-    let output = Command::new(program).args(args).output().await?;
+    // TODO: python can't run without environment variables.
+    // TODO: I need to figure out which one are required for python to work
+    let output = Command::new(program)
+        .args(args)
+        .env_clear()
+        .env("PYTHONPATH", std::env::var("PYTHONPATH").unwrap())
+        .output()
+        .await?;
 
     if !output.status.success() {
         let message = std::str::from_utf8(&output.stderr)?;
