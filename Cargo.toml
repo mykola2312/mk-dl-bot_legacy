@@ -6,17 +6,17 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.75"
+anyhow = "1.0.88"
 dotenv = "0.15.0"
-tokio = { version = "1.32.0", features = ["rt-multi-thread", "macros", "process"] }
-teloxide = { version = "0.12.2", git ="https://github.com/teloxide/teloxide", features = ["macros"] }
-sqlx = { version = "0.7.3", features = [ "runtime-tokio", "tls-native-tls", "postgres", "sqlx-postgres" ] }
-serde = { version = "1.0.196", features = ["derive"] }
-serde_json = "1.0.113"
-ordered-float = "4.2.0"
-regex = "1.10.3"
-url = "2.5.0"
+tokio = { version = "1.40.0", features = ["rt-multi-thread", "macros", "process"] }
+teloxide = { version = "0.13.0", features = ["macros"] }
+sqlx = { version = "0.7.4", features = [ "runtime-tokio", "tls-native-tls", "postgres", "sqlx-postgres" ] }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
+ordered-float = "4.2.2"
+regex = "1.10.6"
+url = "2.5.2"
 tracing = { version = "0.1.40", features = ["async-await"] }
 tracing-appender = "0.2.3"
 tracing-subscriber = "0.3.18"
-rust-i18n = "3.0.1"
+rust-i18n = "3.1.2"
