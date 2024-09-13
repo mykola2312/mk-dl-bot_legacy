@@ -140,7 +140,13 @@ enum Command {
 use crate::dl::ffprobe::FFProbe;
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
-    dbg!(FFProbe::probe("/home/mykola/Videos/test-video").await);
+    if let Ok(probe) = FFProbe::probe("/home/mykola/Videos/test-video").await {
+        if let Some(vs) = probe.get_video_stream() {
+            dbg!(vs.get_video_resolution());
+        }
+    } else {
+        dbg!("failed");
+    }
 
     Ok(())
 }

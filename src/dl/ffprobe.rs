@@ -25,6 +25,20 @@ pub struct FFProbeStream {
     pub duration: f64
 }
 
+impl FFProbeStream {
+    pub fn is_video_stream(&self) -> bool {
+        self.width.is_some() && self.height.is_some()
+    }
+
+    pub fn get_video_resolution(&self) -> Option<(u32, u32)> {
+        if self.is_video_stream() {
+            return Some((self.width.unwrap(), self.height.unwrap()))
+        }
+
+        return None
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct FFProbeOutput {
     pub streams: Vec<FFProbeStream>
@@ -32,11 +46,13 @@ pub struct FFProbeOutput {
 
 impl FFProbeOutput {
     pub fn parse(json: &[u8]) -> Result<FFProbeOutput, serde_json::Error> {
-        let output: Result<FFProbeOutput, _> = serde_json::from_slice(json);
-        dbg!(output);
+        let output: FFProbeOutput = serde_json::from_slice(json)?;
 
-        todo!();
-        //Ok(output)
+        Ok(output)
+    }
+
+    pub fn get_video_stream(&self) -> Option<&FFProbeStream> {
+        self.streams.iter().find(|&s| s.is_video_stream())
     }
 }
 
