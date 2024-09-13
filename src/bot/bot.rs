@@ -137,14 +137,10 @@ enum Command {
     DeclineChat(String),
 }
 
-use crate::dl::spawn::spawn;
+use crate::dl::ffprobe::FFProbe;
 
 async fn cmd_test(bot: Bot, msg: Message, _db: DbPool) -> HandlerResult {
-    //bot.send_message(msg.chat.id, t!("test_response")).await?;
-    let output = spawn("python", &["-c", "import os; print(os.environ)"])
-        .await
-        .unwrap();
-    println!("{}", std::str::from_utf8(&output.stdout[0..4095]).unwrap());
+    dbg!(FFProbe::probe("/home/mykola/Videos/test-video").await);
 
     Ok(())
 }
