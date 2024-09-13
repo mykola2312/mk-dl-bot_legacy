@@ -69,6 +69,9 @@ impl FFMpeg {
 
         Ok(())
     }
+
+    // TODO: implement function to generate thumbnails for videos
+    // ffmpeg -i test-video -vf "select=eq(n\,0)" -vf scale=320:-2 -q:v 3 test-video-thumbnail.jpg
 }
 
 #[cfg(test)]
