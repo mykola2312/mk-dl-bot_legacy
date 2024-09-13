@@ -9,6 +9,7 @@ use self::tmpfile::{TmpFile, TmpFileError};
 use self::yt_dlp::{YtDlp, YtDlpError, YtDlpInfo};
 
 pub mod ffmpeg;
+pub mod ffprobe;
 pub mod spawn;
 mod tmpfile;
 pub mod yt_dlp;

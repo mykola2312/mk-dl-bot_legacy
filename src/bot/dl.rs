@@ -15,8 +15,14 @@ async fn bot_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
         }
     };
 
-    bot.send_video(msg.chat.id, InputFile::file(&output.path))
-        .await?;
+    // query media info with
+    // ffprobe -v quiet -print_format json -show_streams -select_streams v:0 input.mp4
+
+    let mut video = bot.send_video(msg.chat.id, InputFile::file(&output.path));
+    // set width, height and so on
+
+    video.await?;
+
     Ok(())
 }
 
