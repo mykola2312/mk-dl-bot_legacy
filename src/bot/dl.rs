@@ -17,13 +17,19 @@ async fn bot_download(bot: Bot, msg: Message, url: String) -> HandlerResult {
         }
     };
 
-    // query media info with
-    // ffprobe -v quiet -print_format json -show_streams -select_streams v:0 input.mp4
-    let probe = FFProbe::probe(&output.path).await;
-    dbg!(probe);
-
     let mut video = bot.send_video(msg.chat.id, InputFile::file(&output.path));
-    // set width, height and so on
+    // try getting video resolution
+    if let Ok(probe) = FFProbe::probe(&output.path).await {
+        if let Some(vs) = probe.get_video_stream() {
+            if let Some((width, height)) = vs.get_video_resolution() {
+                video.width = Some(width);
+                video.height = Some(height);
+            }
+
+            // set video duration
+            video.duration = Some(vs.duration as u32);
+        }
+    }
 
     video.await?;
 
